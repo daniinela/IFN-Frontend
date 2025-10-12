@@ -1,0 +1,671 @@
+/* ========================================
+   VARIABLES
+   ======================================== */
+:root {
+  --primary: #2d6a4f;
+  --primary-light: #40916c;
+  --primary-dark: #1b4332;
+  --secondary: #52b788;
+  --accent: #74c69d;
+  --success: #06d6a0;
+  --error: #ef476f;
+  --error-bg: #fff0f3;
+  --bg-dark: #081c15;
+  --text-light: #ffffff;
+  --text-dark: #081c15;
+  --text-gray: #6c757d;
+  --border: #e5e5e5;
+  --shadow-sm: 0 2px 8px rgba(8, 28, 21, 0.08);
+  --shadow-md: 0 4px 16px rgba(8, 28, 21, 0.12);
+  --shadow-lg: 0 8px 24px rgba(8, 28, 21, 0.15);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   FONDO FORESTAL
+   ======================================== */
+.forest-bg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #081c15 0%, #1b4332 50%, #2d6a4f 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Partículas flotantes */
+.particles-register {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.particles-register .particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: rgba(149, 213, 178, 0.3);
+  border-radius: 50%;
+  animation: floatParticle 15s infinite ease-in-out;
+  box-shadow: 0 0 15px rgba(149, 213, 178, 0.4);
+}
+
+.particles-register .particle:nth-child(1) {
+  left: 15%;
+  animation-delay: 0s;
+  animation-duration: 13s;
+}
+
+.particles-register .particle:nth-child(2) {
+  left: 35%;
+  animation-delay: 2s;
+  animation-duration: 16s;
+}
+
+.particles-register .particle:nth-child(3) {
+  left: 55%;
+  animation-delay: 4s;
+  animation-duration: 14s;
+}
+
+.particles-register .particle:nth-child(4) {
+  left: 75%;
+  animation-delay: 1s;
+  animation-duration: 15s;
+}
+
+.particles-register .particle:nth-child(5) {
+  left: 90%;
+  animation-delay: 3s;
+  animation-duration: 17s;
+}
+
+@keyframes floatParticle {
+  0%, 100% {
+    transform: translateY(100vh) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(1);
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   CONTAINER PRINCIPAL
+   ======================================== */
+.register-container {
+  position: relative;
+  z-index: 1;
+  padding: 3rem 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ========================================
+   TARJETA DE REGISTRO
+   ======================================== */
+.register-card {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
+  animation: cardSlideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+@keyframes cardSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+.register-header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  padding: 2.5rem 2rem;
+  border-radius: 24px 24px 0 0;
+  text-align: center;
+  color: var(--text-light);
+  position: relative;
+  overflow: hidden;
+}
+
+.register-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.header-icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 1.25rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: iconPulse 2s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.header-icon svg {
+  width: 36px;
+  height: 36px;
+  color: white;
+}
+
+.register-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.register-header p {
+  font-size: 1rem;
+  opacity: 0.95;
+  font-weight: 400;
+  position: relative;
+  z-index: 1;
+}
+
+/* ========================================
+   BODY DEL FORMULARIO
+   ======================================== */
+.register-body {
+  padding: 2.5rem 2rem;
+}
+
+/* ========================================
+   ALERT DE ERROR
+   ======================================== */
+.error-alert {
+  background: var(--error-bg);
+  border-left: 4px solid var(--error);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  animation: errorShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.error-alert svg {
+  color: var(--error);
+  flex-shrink: 0;
+}
+
+.error-alert span {
+  color: #c71f3d;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* ========================================
+   SECCIONES DEL FORMULARIO
+   ======================================== */
+.form-section {
+  margin-bottom: 2.5rem;
+  animation: fadeInUp 0.5s ease-out backwards;
+}
+
+.form-section:nth-child(1) { animation-delay: 0.1s; }
+.form-section:nth-child(2) { animation-delay: 0.2s; }
+.form-section:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.section-title svg {
+  color: var(--primary);
+}
+
+/* ========================================
+   GRUPOS DE FORMULARIO
+   ======================================== */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin-bottom: 0.5rem;
+}
+
+.label-small {
+  font-size: 0.85rem;
+  color: var(--text-gray);
+}
+
+.form-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-gray);
+  margin-top: 0.4rem;
+}
+
+.form-hint svg {
+  color: var(--success);
+  flex-shrink: 0;
+}
+
+.form-hint strong {
+  color: var(--primary);
+}
+
+/* ========================================
+   INPUTS Y SELECTS
+   ======================================== */
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 0.875rem 1.15rem;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--text-dark);
+  background: #ffffff;
+  transition: var(--transition);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(45, 106, 79, 0.1);
+  transform: translateY(-2px);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: #a8a8a8;
+}
+
+.form-input:read-only {
+  background: #f8f9fa;
+  cursor: not-allowed;
+}
+
+.form-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%232d6a4f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 3rem;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.6;
+}
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+  border-color: var(--primary-light);
+}
+
+/* ========================================
+   GRIDS
+   ======================================== */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .form-grid-2,
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   SUBSECCIONES (Títulos y Experiencias)
+   ======================================== */
+.subsection-card {
+  background: #f8f9fa;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  transition: var(--transition);
+  position: relative;
+}
+
+.subsection-card:hover {
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.subsection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.subsection-header span {
+  font-weight: 600;
+  color: var(--primary-dark);
+  font-size: 0.95rem;
+}
+
+/* ========================================
+   BOTONES
+   ======================================== */
+.btn-add {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, var(--success) 0%, #05b892 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(6, 214, 160, 0.3);
+}
+
+.btn-add:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(6, 214, 160, 0.4);
+}
+
+.btn-add svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn-delete-mini {
+  background: #fff;
+  border: 2px solid var(--error);
+  color: var(--error);
+  padding: 0.4rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.btn-delete-mini:hover {
+  background: var(--error);
+  color: white;
+  transform: scale(1.05);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 1.125rem 2rem;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: var(--transition);
+  box-shadow: 0 6px 20px rgba(45, 106, 79, 0.3);
+  margin-top: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-submit::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.btn-submit:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(45, 106, 79, 0.4);
+}
+
+.btn-submit:hover::before {
+  left: 100%;
+}
+
+.btn-submit:active {
+  transform: translateY(-1px);
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-submit svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ========================================
+   SPINNER DE ENVÍO
+   ======================================== */
+.spinner-submit {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spinSubmit 0.8s linear infinite;
+}
+
+@keyframes spinSubmit {
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   EFECTO FOCUS EN GRUPOS
+   ======================================== */
+.form-group:focus-within label {
+  color: var(--primary);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  .register-container {
+    padding: 2rem 1rem;
+  }
+
+  .register-header {
+    padding: 2rem 1.5rem;
+  }
+
+  .register-header h2 {
+    font-size: 1.65rem;
+  }
+
+  .register-body {
+    padding: 2rem 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.2rem;
+  }
+
+  .header-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .header-icon svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  .subsection-card {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-container {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .register-card {
+    border-radius: 16px;
+  }
+
+  .register-header {
+    padding: 1.75rem 1.25rem;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .register-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .register-body {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-submit {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .subsection-card {
+    padding: 1rem;
+  }
+}
+
+/* ========================================
+   SCROLLBAR PERSONALIZADO
+   ======================================== */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-light);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* ========================================
+   SMOOTH SCROLL
+   ======================================== */
+html {
+  scroll-behavior: smooth;
+}
