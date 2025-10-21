@@ -11,6 +11,7 @@ function ProtectedRoute({ children }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // 1️⃣ Verificar sesión
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           console.warn('⚠️ No hay sesión activa');
@@ -19,30 +20,30 @@ function ProtectedRoute({ children }) {
           return;
         }
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
+        // 2️⃣ Obtener usuario (incluye user_metadata)
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
           console.warn('⚠️ Usuario no encontrado');
           setAuthorized(false);
           setLoading(false);
           return;
         }
 
-        const { data: userData, error } = await supabase
-          .from('usuarios')
-          .select('rol')
-          .eq('email', user.email)
-          .single();
-
-        if (error || !userData) {
-          console.warn('⚠️ No se encontró el rol');
+        // 3️⃣ ✅ OBTENER ROL DEL TOKEN (no de la BD)
+        const rol = user.user_metadata?.rol?.toLowerCase();
+        
+        if (!rol) {
+          console.error('⚠️ No se encontró el rol en user_metadata');
+          console.log('User metadata completo:', user.user_metadata);
           setAuthorized(false);
           setLoading(false);
           return;
         }
 
-        const rol = userData.rol?.toLowerCase();
         console.log('👤 Rol detectado:', rol);
+        console.log('👤 Usuario:', user.email);
 
+        // 4️⃣ Determinar ruta según rol
         if (rol === 'admin') {
           setAuthorized(true);
           setRedirectPath('/admin/dashboard');
@@ -53,6 +54,7 @@ function ProtectedRoute({ children }) {
           console.warn('⚠️ Rol no autorizado:', rol);
           setAuthorized(false);
         }
+
       } catch (err) {
         console.error('❌ Error verificando autenticación:', err);
         setAuthorized(false);
@@ -73,9 +75,15 @@ function ProtectedRoute({ children }) {
     );
   }
 
-  if (!authorized) return <Navigate to="/login" replace />;
-  if (redirectPath && location.pathname === '/login')
+  if (!authorized) {
+    console.log('❌ No autorizado, redirigiendo a /login');
+    return <Navigate to="/login" replace />;
+  }
+
+  if (redirectPath && location.pathname === '/login') {
+    console.log('✅ Redirigiendo a:', redirectPath);
     return <Navigate to={redirectPath} replace />;
+  }
 
   return children ? children : <Outlet />;
 }

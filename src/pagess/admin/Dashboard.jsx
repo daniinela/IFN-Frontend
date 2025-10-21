@@ -44,7 +44,7 @@ function Dashboard() {
       icon: '💡',
       title: 'Consejos Rápidos',
       description: 'Usa el menú lateral para navegar. Los iconos indican cada sección. Si tienes dudas, contacta al soporte técnico desde el menú de usuario.',
-      tips: ['Ctrl + K para búsqueda rápida', 'Exporta reportes desde cada sección']
+      tips: ['Trabaja bien descansado y feliz', 'La vida es buena']
     }
   ];
 
@@ -81,7 +81,7 @@ function Dashboard() {
             console.error('Error en conglomerados:', err.response?.status, err.response?.data || err.message);
             return { data: [] };
           }),
-          axios.get('http://localhost:3004/api/brigadas', { 
+          axios.get('http://localhost:3002/api/brigadas', { 
             headers: { Authorization: `Bearer ${token}` } 
           }).catch(err => {
             console.error('Error en brigadas:', err.response?.status, err.response?.data || err.message);
@@ -155,7 +155,7 @@ function Dashboard() {
       description: 'Equipos formados'
     },
     { 
-      title: 'En Campo', 
+      title: 'Brigadistas activos', 
       value: stats.brigadistasActivos, 
       icon: '✅', 
       color: '#8b5cf6',

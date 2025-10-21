@@ -105,21 +105,41 @@ function Brigadistas() {
     }
   };
 
-  const eliminarBrigadista = async () => {
-    try {
+const eliminarBrigadista = async () => {
+  try {
+    setLoading(true);
+    
+    console.log('🗑️ Eliminando brigadista:', brigadistaSeleccionado.id);
+    console.log('User ID:', brigadistaSeleccionado.user_id);
+    
+    // ✅ PRIMERO: Eliminar desde usuarios-service (esto eliminará en cascada)
+    if (brigadistaSeleccionado.user_id) {
+      console.log('Llamando a usuarios-service...');
+      await axios.delete(
+        `http://localhost:3001/api/usuarios/${brigadistaSeleccionado.user_id}`
+      );
+      console.log('✅ Eliminado de usuarios-service (cascada a brigadistas y auth)');
+    } else {
+      // Si no tiene user_id, eliminar solo de brigadistas
+      console.log('Sin user_id, eliminando solo brigadista...');
       await axios.delete(
         `http://localhost:3002/api/brigadistas/${brigadistaSeleccionado.id}`
       );
-      
-      alert('✅ Brigadista eliminado exitosamente');
-      setShowEliminarModal(false);
-      setBrigadistaSeleccionado(null);
-      cargarBrigadistas();
-    } catch (error) {
-      console.error('Error eliminando:', error);
-      alert(error.response?.data?.error || 'Error al eliminar brigadista');
+      console.log('✅ Eliminado solo de brigadistas');
     }
-  };
+    
+    alert('✅ Brigadista eliminado exitosamente de todas las tablas');
+    setShowEliminarModal(false);
+    setBrigadistaSeleccionado(null);
+    cargarBrigadistas();
+    
+  } catch (error) {
+    console.error('❌ Error eliminando:', error);
+    alert(error.response?.data?.error || 'Error al eliminar brigadista');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const brigadistasFiltrados = brigadistas.filter(b => {
     const cumpleRol = filtroRol === 'todos' || b.rol === filtroRol;
