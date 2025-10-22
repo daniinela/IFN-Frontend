@@ -1,4 +1,3 @@
-// frontend/src/pages/admin/Layout.jsx
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
@@ -10,10 +9,8 @@ function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   
-  // Obtener datos del usuario logueado
   const userData = JSON.parse(localStorage.getItem('user-data') || '{}');
 
-  // Cargar preferencia de tema
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
@@ -22,7 +19,6 @@ function AdminLayout() {
     }
   }, []);
 
-  // Toggle tema
   const toggleTheme = () => {
     const newTheme = !darkMode;
     setDarkMode(newTheme);
@@ -47,24 +43,68 @@ function AdminLayout() {
     }
   };
 
-  // Menú de navegación
   const menuItems = [
-  { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
-  { path: '/admin/conglomerados', label: 'Conglomerados', icon: '🗺️' },
-  { path: '/admin/brigadas', label: 'Brigadas', icon: '👥' },
-  { path: '/admin/brigadistas', label: 'Brigadistas', icon: '👤' },
-];
+    { 
+      path: '/admin/dashboard', 
+      label: 'Dashboard', 
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+        </svg>
+      )
+    },
+    { 
+      path: '/admin/conglomerados', 
+      label: 'Conglomerados', 
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      )
+    },
+    { 
+      path: '/admin/brigadas', 
+      label: 'Brigadas', 
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      )
+    },
+    { 
+      path: '/admin/brigadistas', 
+      label: 'Brigadistas', 
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      )
+    },
+  ];
 
   const isActive = (path) => location.pathname === path;
 
   return (
     <div className="admin-layout">
-      {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
-        {/* Logo */}
         <div className="sidebar-logo">
           <div className="logo-icon-wrapper">
-            <span className="logo-icon">🌳</span>
+            <span className="logo-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" />
+                <path d="M12 22V12" />
+                <path d="M22 7L12 12L2 7" />
+                <path d="M2 17L12 12L22 17" />
+              </svg>
+            </span>
           </div>
           {sidebarOpen && (
             <div className="logo-text-wrapper">
@@ -74,7 +114,6 @@ function AdminLayout() {
           )}
         </div>
 
-        {/* Menu */}
         <nav className="sidebar-menu">
           {menuItems.map(item => (
             <Link
@@ -90,7 +129,6 @@ function AdminLayout() {
           ))}
         </nav>
 
-        {/* Sidebar Footer */}
         <div className="sidebar-footer">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -110,9 +148,7 @@ function AdminLayout() {
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="admin-main">
-        {/* Topbar */}
         <header className="admin-topbar">
           <div className="topbar-left">
             <h1 className="topbar-title">
@@ -121,7 +157,6 @@ function AdminLayout() {
           </div>
           
           <div className="topbar-right">
-            {/* Theme Toggle */}
             <button 
               className="theme-toggle"
               onClick={toggleTheme}
@@ -139,7 +174,6 @@ function AdminLayout() {
               )}
             </button>
 
-            {/* User Info */}
             <div className="topbar-user">
               <div className="user-avatar">
                 {userData.nombre_completo?.charAt(0) || 'A'}
@@ -147,7 +181,6 @@ function AdminLayout() {
               <span className="user-name">{userData.nombre_completo || 'Admin'}</span>
             </div>
 
-            {/* Logout */}
             <button
               onClick={handleLogout}
               className="logout-button"
@@ -158,12 +191,11 @@ function AdminLayout() {
                 <path d="M16 17L21 12L16 7" stroke="currentColor" strokeWidth="2"/>
                 <path d="M21 12H9" stroke="currentColor" strokeWidth="2"/>
               </svg>
-              Salir
+              <span>Salir</span>
             </button>
           </div>
         </header>
 
-        {/* Content Area */}
         <main className="admin-content">
           <Outlet />
         </main>

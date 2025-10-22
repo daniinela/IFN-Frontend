@@ -1,40 +1,36 @@
 /* ========================================
-   VARIABLES TEMA PROFESIONAL GUBERNAMENTAL
+   VARIABLES DE TEMA
    ======================================== */
 :root {
-  /* Colores forestales profesionales */
   --primary: #2d6a4f;
-  --primary-light: #40916c;
-  --primary-dark: #1b4332;
+  --primary-light: #52b788;
   --secondary: #52b788;
   --accent: #74c69d;
-  --success: #06d6a0;
+  --success: #40916c;
   
-  /* Tema Claro */
-  --bg-main: #f5f7f6;
+  --bg-main: #f8fafb;
   --bg-card: #ffffff;
-  --bg-secondary: #e8f0ed;
-  --text-primary: #1b4332;
-  --text-secondary: #52796f;
-  --border: #d1e3db;
-  --shadow: rgba(27, 67, 50, 0.08);
+  --bg-secondary: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
+  --shadow: rgba(15, 23, 42, 0.08);
 }
 
 [data-theme="dark"] {
-  /* Tema Oscuro */
-  --bg-main: #0d1f18;
-  --bg-card: #1a2f26;
-  --bg-secondary: #132620;
-  --text-primary: #e8f0ed;
-  --text-secondary: #95d5b2;
-  --border: rgba(116, 198, 157, 0.15);
-  --shadow: rgba(0, 0, 0, 0.4);
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  --primary: #52b788;
+  --primary-light: #74c69d;
+  --secondary: #74c69d;
+  --accent: #95d5b2;
+  --success: #74c69d;
+  
+  --bg-main: #0f1419;
+  --bg-card: #1a2026;
+  --bg-secondary: #232a33;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --border: #2d3748;
+  --shadow: rgba(0, 0, 0, 0.3);
 }
 
 /* ========================================
@@ -42,165 +38,130 @@
    ======================================== */
 .admin-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
   background: var(--bg-main);
-  transition: background 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* ========================================
-   SIDEBAR - ESTILO GUBERNAMENTAL
+   SIDEBAR
    ======================================== */
 .admin-sidebar {
-  width: 260px;
-  background: linear-gradient(180deg, #1b4332 0%, #2d6a4f 100%);
+  width: 280px;
   height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 12px var(--shadow);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1000;
-  border-right: 1px solid rgba(116, 198, 157, 0.1);
-}
-
-.admin-sidebar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 1px;
-  height: 100%;
-  background: linear-gradient(180deg, transparent, rgba(116, 198, 157, 0.3), transparent);
+  transition: width 0.3s ease;
+  overflow: hidden;
+  position: relative;
+  z-index: 100;
 }
 
 .admin-sidebar.closed {
-  width: 75px;
+  width: 80px;
 }
 
-/* ========================================
-   LOGO - PROFESIONAL
-   ======================================== */
+/* Logo */
 .sidebar-logo {
-  padding: 1.75rem 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  border-bottom: 1px solid rgba(116, 198, 157, 0.15);
-  position: relative;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  min-height: 80px;
 }
 
 .logo-icon-wrapper {
-  width: 45px;
-  height: 45px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.2);
 }
 
 .logo-icon {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
 }
 
 .logo-text-wrapper {
-  opacity: 1;
-  transition: opacity 0.3s;
-}
-
-.admin-sidebar.closed .logo-text-wrapper {
-  opacity: 0;
-  pointer-events: none;
+  flex: 1;
+  overflow: hidden;
 }
 
 .logo-text {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: white;
-  line-height: 1.2;
-  margin-bottom: 0.15rem;
-  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
 }
 
 .logo-subtitle {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-/* ========================================
-   MENU - DISEÑO CORPORATIVO
-   ======================================== */
+.admin-sidebar.closed .logo-text-wrapper {
+  display: none;
+}
+
+/* Menu de navegación */
 .sidebar-menu {
   flex: 1;
-  padding: 1.25rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  position: relative;
+  padding: 1rem 0;
   overflow-y: auto;
 }
 
 .sidebar-menu::-webkit-scrollbar {
-  width: 3px;
+  width: 6px;
 }
 
 .sidebar-menu::-webkit-scrollbar-track {
-  background: rgba(116, 198, 157, 0.05);
+  background: var(--bg-secondary);
 }
 
 .sidebar-menu::-webkit-scrollbar-thumb {
-  background: rgba(116, 198, 157, 0.3);
-  border-radius: 2px;
+  background: var(--border);
+  border-radius: 3px;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  padding: 0.8rem 1rem;
-  color: rgba(255, 255, 255, 0.75);
+  gap: 1rem;
+  padding: 0.875rem 1.5rem;
+  margin: 0.25rem 0.75rem;
+  color: var(--text-secondary);
   text-decoration: none;
-  border-radius: 4px;
+  border-radius: 8px;
   transition: all 0.2s ease;
-  position: relative;
   font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.menu-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: #74c69d;
-  transform: scaleY(0);
-  transition: transform 0.2s ease;
-  border-radius: 0 2px 2px 0;
+  font-size: 0.925rem;
+  position: relative;
 }
 
 .menu-item:hover {
-  background: rgba(116, 198, 157, 0.12);
-  color: white;
-  transform: translateX(3px);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .menu-item.active {
-  background: rgba(116, 198, 157, 0.2);
-  color: white;
+  background: linear-gradient(135deg, rgba(45, 106, 79, 0.1), rgba(82, 183, 136, 0.15));
+  color: var(--primary);
   font-weight: 600;
-}
-
-.menu-item.active::before {
-  transform: scaleY(1);
 }
 
 .menu-icon {
@@ -209,214 +170,209 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
+  width: 24px;
 }
 
 .menu-text {
-  font-size: 0.875rem;
-  font-weight: 500;
   white-space: nowrap;
-  opacity: 1;
-  transition: opacity 0.3s;
-  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .admin-sidebar.closed .menu-text {
-  opacity: 0;
-  pointer-events: none;
+  display: none;
 }
 
 .admin-sidebar.closed .menu-item {
   justify-content: center;
-  padding: 0.8rem;
+  padding: 0.875rem;
 }
 
 .active-indicator {
   position: absolute;
-  right: 0.875rem;
-  width: 6px;
-  height: 6px;
-  background: #06d6a0;
-  border-radius: 50%;
-  box-shadow: 0 0 8px rgba(6, 214, 160, 0.6);
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  background: var(--primary);
+  border-radius: 0 3px 3px 0;
 }
 
-.admin-sidebar.closed .active-indicator {
-  display: none;
-}
-
-/* ========================================
-   SIDEBAR FOOTER
-   ======================================== */
+/* Footer del sidebar */
 .sidebar-footer {
-  padding: 0.875rem;
-  border-top: 1px solid rgba(116, 198, 157, 0.15);
+  padding: 1rem;
+  border-top: 1px solid var(--border);
 }
 
 .sidebar-toggle {
   width: 100%;
-  padding: 0.7rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-  color: white;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
   cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
 }
 
 .sidebar-toggle:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  border-color: var(--primary);
+  color: white;
 }
 
 /* ========================================
-   MAIN CONTENT
+   CONTENIDO PRINCIPAL
    ======================================== */
 .admin-main {
   flex: 1;
-  margin-left: 260px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  transition: margin-left 0.3s ease;
-}
-
-.admin-sidebar.closed + .admin-main {
-  margin-left: 75px;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* ========================================
-   TOPBAR - PROFESIONAL
+   TOPBAR
    ======================================== */
 .admin-topbar {
-  height: 65px;
+  height: 70px;
   background: var(--bg-card);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  flex-shrink: 0;
   box-shadow: 0 1px 3px var(--shadow);
-  transition: all 0.3s ease;
 }
 
 .topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
+  flex: 1;
 }
 
 .topbar-title {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
+  margin: 0;
   letter-spacing: -0.02em;
 }
 
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
+  gap: 1rem;
 }
 
-/* ========================================
-   THEME TOGGLE
-   ======================================== */
+/* Toggle de tema */
 .theme-toggle {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   transition: all 0.2s ease;
-  color: var(--text-secondary);
 }
 
 .theme-toggle:hover {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
   border-color: var(--primary);
   color: white;
 }
 
-/* ========================================
-   USER INFO
-   ======================================== */
+/* Usuario */
 .topbar-user {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 1rem;
   background: var(--bg-secondary);
-  border-radius: 4px;
+  border-radius: 8px;
   border: 1px solid var(--border);
 }
 
 .user-avatar {
-  width: 34px;
-  height: 34px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-  border-radius: 4px;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   font-weight: 700;
-  font-size: 0.875rem;
+  color: white;
+  font-size: 0.95rem;
+  flex-shrink: 0;
 }
 
 .user-name {
-  font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary);
+  font-size: 0.9rem;
   white-space: nowrap;
 }
 
-/* ========================================
-   LOGOUT BUTTON
-   ======================================== */
+/* Botón de logout */
 .logout-button {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.125rem;
-  background: #ef476f;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.875rem;
+  padding: 0.625rem 1.25rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
   font-weight: 600;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .logout-button:hover {
-  background: #d63759;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(239, 71, 111, 0.3);
+  background: #fff0f3;
+  border-color: #ef476f;
+  color: #ef476f;
 }
 
-.logout-button svg {
-  width: 16px;
-  height: 16px;
+[data-theme="dark"] .logout-button:hover {
+  background: rgba(239, 71, 111, 0.1);
 }
 
 /* ========================================
-   CONTENT AREA
+   ÁREA DE CONTENIDO
    ======================================== */
 .admin-content {
   flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: var(--bg-main);
-  transition: background 0.3s ease;
-  min-height: calc(100vh - 65px);
+}
+
+.admin-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-content::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.admin-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.admin-content::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
 }
 
 /* ========================================
@@ -424,6 +380,10 @@
    ======================================== */
 @media (max-width: 1024px) {
   .admin-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
     transform: translateX(-100%);
   }
 
@@ -432,15 +392,25 @@
   }
 
   .admin-main {
-    margin-left: 0;
-  }
-
-  .topbar-title {
-    font-size: 1.15rem;
+    width: 100%;
   }
 
   .user-name {
     display: none;
+  }
+
+  .topbar-title {
+    font-size: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-topbar {
+    padding: 0 1rem;
+  }
+
+  .topbar-right {
+    gap: 0.5rem;
   }
 
   .logout-button span {
@@ -448,25 +418,30 @@
   }
 
   .logout-button {
-    width: 38px;
-    height: 38px;
-    padding: 0;
-    justify-content: center;
+    padding: 0.625rem;
+    width: 42px;
   }
 }
 
-@media (max-width: 768px) {
-  .admin-topbar {
-    padding: 0 1rem;
-    height: 60px;
+/* ========================================
+   ANIMACIONES
+   ======================================== */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
   }
-
-  .topbar-user {
-    padding: 0.45rem;
-  }
-
-  .theme-toggle {
-    width: 36px;
-    height: 36px;
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
+
+.menu-item {
+  animation: slideIn 0.3s ease-out backwards;
+}
+
+.menu-item:nth-child(1) { animation-delay: 0.05s; }
+.menu-item:nth-child(2) { animation-delay: 0.1s; }
+.menu-item:nth-child(3) { animation-delay: 0.15s; }
+.menu-item:nth-child(4) { animation-delay: 0.2s; }

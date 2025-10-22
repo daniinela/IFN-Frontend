@@ -17,31 +17,26 @@ function Dashboard() {
 
   const helpSlides = [
     {
-      icon: '📊',
       title: 'Bienvenido al Dashboard',
       description: 'Aquí encontrarás todas las estadísticas clave del sistema. Las tarjetas muestran métricas en tiempo real de brigadistas, conglomerados y brigadas activas.',
       tips: ['Haz clic en las tarjetas para ver detalles', 'Usa las acciones rápidas abajo']
     },
     {
-      icon: '👤',
       title: 'Gestión de Brigadistas',
       description: 'Invita nuevos brigadistas al sistema enviándoles un correo. Ellos recibirán un enlace para completar su registro con toda su información académica.',
       tips: ['Verifica que el email sea institucional', 'Puedes ver el estado de invitaciones']
     },
     {
-      icon: '🗺️',
       title: 'Conglomerados',
       description: 'Genera nuevos puntos de muestreo para el inventario forestal. El sistema calcula automáticamente las coordenadas y asigna los códigos correspondientes.',
       tips: ['Revisa coordenadas antes de generar', 'Exporta la lista en formato Excel']
     },
     {
-      icon: '👥',
       title: 'Brigadas',
       description: 'Crea equipos de trabajo asignando brigadistas a brigadas. Cada brigada necesita un jefe, botánicos y técnicos para funcionar correctamente.',
       tips: ['Mínimo 3 brigadistas por brigada', 'Asigna conglomerados después de crear']
     },
     {
-      icon: '💡',
       title: 'Consejos Rápidos',
       description: 'Usa el menú lateral para navegar. Los iconos indican cada sección. Si tienes dudas, contacta al soporte técnico desde el menú de usuario.',
       tips: ['Trabaja bien descansado y feliz', 'La vida es buena']
@@ -55,7 +50,6 @@ function Dashboard() {
         setLoading(true);
         setError('');
 
-        // CORRECTO: Obtener el token desde Supabase automáticamente
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError || !session) {
@@ -67,7 +61,6 @@ function Dashboard() {
         const token = session.access_token;
         console.log('Token de Supabase obtenido:', token?.substring(0, 10) + '...');
 
-        // Hacer las peticiones con el token de Supabase
         const [brigadistasRes, conglomeradosRes, brigadasRes] = await Promise.all([
           axios.get('http://localhost:3002/api/brigadistas', { 
             headers: { Authorization: `Bearer ${token}` } 
@@ -110,7 +103,6 @@ function Dashboard() {
     fetchStats();
   }, []);
 
-  // Control del carrusel
   useEffect(() => {
     if (!showHelp) return;
     
@@ -133,34 +125,56 @@ function Dashboard() {
     { 
       title: 'Total Brigadistas', 
       value: stats.totalBrigadistas, 
-      icon: '👤', 
       color: '#3b82f6',
       bgGradient: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)',
-      description: 'Usuarios registrados'
+      description: 'Usuarios registrados',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      )
     },
     { 
       title: 'Conglomerados', 
       value: stats.totalConglomerados, 
-      icon: '🗺️', 
       color: '#10b981',
       bgGradient: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
-      description: 'Puntos de muestreo'
+      description: 'Puntos de muestreo',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      )
     },
     { 
       title: 'Brigadas Activas', 
       value: stats.totalBrigadas, 
-      icon: '👥', 
       color: '#f59e0b',
       bgGradient: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
-      description: 'Equipos formados'
+      description: 'Equipos formados',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      )
     },
     { 
       title: 'Brigadistas activos', 
       value: stats.brigadistasActivos, 
-      icon: '✅', 
       color: '#8b5cf6',
       bgGradient: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
-      description: 'Brigadistas activos'
+      description: 'Brigadistas activos',
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+          <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+      )
     }
   ];
 
@@ -175,7 +189,6 @@ function Dashboard() {
 
   return (
     <div className="admin-dashboard">
-      {/* Header con botón de ayuda */}
       <div className="dashboard-header">
         <div>
           <h2 className="dashboard-title">Panel de Control</h2>
@@ -200,13 +213,12 @@ function Dashboard() {
         </div>
       )}
       
-      {/* Stats Cards */}
       <div className="stats-grid">
         {cards.map((card, index) => (
           <div key={index} className="stat-card-modern" style={{ '--card-delay': `${index * 0.1}s` }}>
             <div className="stat-card-inner">
               <div className="stat-icon-wrapper" style={{ background: card.bgGradient }}>
-                <span className="stat-icon-large">{card.icon}</span>
+                <span className="stat-icon-svg">{card.icon}</span>
               </div>
               <div className="stat-details">
                 <p className="stat-label-modern">{card.title}</p>
@@ -224,7 +236,6 @@ function Dashboard() {
         ))}
       </div>
 
-      {/* Quick Actions */}
       <div className="quick-actions-section">
         <h3 className="section-title">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -234,28 +245,50 @@ function Dashboard() {
         </h3>
         <div className="actions-grid-modern">
           <button className="action-card primary-action">
-            <div className="action-icon">🗺️</div>
+            <div className="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+            </div>
             <div className="action-content">
               <h4>Generar Conglomerado</h4>
               <p>Crear nuevo punto de muestreo</p>
             </div>
           </button>
           <button className="action-card success-action">
-            <div className="action-icon">👤</div>
+            <div className="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </div>
             <div className="action-content">
               <h4>Invitar Brigadista</h4>
               <p>Enviar invitación por email</p>
             </div>
           </button>
           <button className="action-card warning-action">
-            <div className="action-icon">👥</div>
+            <div className="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
             <div className="action-content">
               <h4>Crear Brigada</h4>
               <p>Formar nuevo equipo de trabajo</p>
             </div>
           </button>
           <button className="action-card info-action">
-            <div className="action-icon">📊</div>
+            <div className="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+                <path d="M22 12A10 10 0 0 0 12 2v10z" />
+              </svg>
+            </div>
             <div className="action-content">
               <h4>Ver Reportes</h4>
               <p>Analíticas y exportación</p>
@@ -264,7 +297,6 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Actividad Reciente */}
       <div className="recent-activity">
         <h3 className="section-title">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -275,21 +307,35 @@ function Dashboard() {
         </h3>
         <div className="activity-list">
           <div className="activity-item">
-            <div className="activity-icon success">✓</div>
+            <div className="activity-icon success">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
             <div className="activity-content">
               <p className="activity-title">Nueva brigada creada</p>
               <p className="activity-time">Hace 2 horas</p>
             </div>
           </div>
           <div className="activity-item">
-            <div className="activity-icon info">📍</div>
+            <div className="activity-icon info">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+            </div>
             <div className="activity-content">
               <p className="activity-title">5 conglomerados generados</p>
               <p className="activity-time">Hace 5 horas</p>
             </div>
           </div>
           <div className="activity-item">
-            <div className="activity-icon warning">👤</div>
+            <div className="activity-icon warning">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </div>
             <div className="activity-content">
               <p className="activity-title">Nuevo brigadista registrado</p>
               <p className="activity-time">Hace 1 día</p>
@@ -298,7 +344,6 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Modal de Ayuda con Carrusel */}
       {showHelp && (
         <div className="help-overlay-dashboard" onClick={() => setShowHelp(false)}>
           <div className="help-modal-dashboard" onClick={(e) => e.stopPropagation()}>
@@ -310,7 +355,6 @@ function Dashboard() {
 
             <div className="help-carousel">
               <div className="help-slide">
-                <div className="help-icon-big">{helpSlides[currentSlide].icon}</div>
                 <h3>{helpSlides[currentSlide].title}</h3>
                 <p>{helpSlides[currentSlide].description}</p>
                 <div className="help-tips">
