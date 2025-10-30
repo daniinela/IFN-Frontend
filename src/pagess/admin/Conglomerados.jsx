@@ -11,6 +11,16 @@ function Conglomerados() {
   const [conglomerados, setConglomerados] = useState([]);
   const [filtro, setFiltro] = useState('todos');
   
+  // 🆕 NUEVOS ESTADOS PARA PAGINACIÓN
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [totalConglomerados, setTotalConglomerados] = useState(0);
+  const [totalPaginas, setTotalPaginas] = useState(0);
+  const conglomeradosPorPagina = 20;
+  
+  // 🆕 NUEVOS ESTADOS PARA BÚSQUEDA
+  const [busqueda, setBusqueda] = useState('');
+  const [busquedaActiva, setBusquedaActiva] = useState('');
+  
   const [showGenerarModal, setShowGenerarModal] = useState(false);
   const [showDetalleModal, setShowDetalleModal] = useState(false);
   const [showRechazarModal, setShowRechazarModal] = useState(false);
@@ -43,26 +53,103 @@ function Conglomerados() {
     }
   }, []);
 
+  // 🆕 FUNCIÓN ACTUALIZADA CON PAGINACIÓN
   const cargarConglomerados = useCallback(async () => {
     try {
       setLoading(true);
-      const url = filtro === 'todos' 
+      
+      const baseUrl = filtro === 'todos' 
         ? 'http://localhost:3003/api/conglomerados'
         : `http://localhost:3003/api/conglomerados/estado/${filtro}`;
       
-      const response = await axios.get(url);
-      setConglomerados(response.data);
+      // 🆕 Construir parámetros de paginación
+      const params = new URLSearchParams({
+        page: paginaActual,
+        limit: conglomeradosPorPagina
+      });
+      
+      if (busquedaActiva) {
+        params.append('busqueda', busquedaActiva);
+      }
+      
+      const response = await axios.get(`${baseUrl}?${params}`);
+      
+      // 🆕 El backend ahora devuelve { data: [], total: 0, totalPages: 10 }
+      if (response.data.data) {
+        setConglomerados(response.data.data);
+        setTotalConglomerados(response.data.total);
+        setTotalPaginas(response.data.totalPages);
+      } else {
+        // Fallback si el backend no está actualizado
+        setConglomerados(response.data);
+        setTotalConglomerados(response.data.length);
+        setTotalPaginas(1);
+      }
+      
     } catch (error) {
       console.error('Error cargando conglomerados:', error);
       alert('Error al cargar conglomerados');
     } finally {
       setLoading(false);
     }
-  }, [filtro]);
+  }, [filtro, paginaActual, busquedaActiva]);
 
   useEffect(() => {
     cargarConglomerados();
   }, [cargarConglomerados]);
+
+  // 🆕 MANEJAR BÚSQUEDA
+  const handleBuscar = (e) => {
+    e.preventDefault();
+    setBusquedaActiva(busqueda);
+    setPaginaActual(1);
+  };
+
+  // 🆕 LIMPIAR BÚSQUEDA
+  const limpiarBusqueda = () => {
+    setBusqueda('');
+    setBusquedaActiva('');
+    setPaginaActual(1);
+  };
+
+  // 🆕 CAMBIAR FILTRO (resetea paginación)
+  const cambiarFiltro = (nuevoFiltro) => {
+    setFiltro(nuevoFiltro);
+    setPaginaActual(1);
+  };
+
+  // 🆕 NAVEGACIÓN DE PÁGINAS
+  const irAPagina = (numeroPagina) => {
+    if (numeroPagina >= 1 && numeroPagina <= totalPaginas) {
+      setPaginaActual(numeroPagina);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // 🆕 GENERAR NÚMEROS DE PÁGINA VISIBLES
+  const obtenerPaginasVisibles = () => {
+    const paginas = [];
+    const rango = 2;
+    
+    let inicio = Math.max(1, paginaActual - rango);
+    let fin = Math.min(totalPaginas, paginaActual + rango);
+    
+    if (inicio > 1) {
+      paginas.push(1);
+      if (inicio > 2) paginas.push('...');
+    }
+    
+    for (let i = inicio; i <= fin; i++) {
+      paginas.push(i);
+    }
+    
+    if (fin < totalPaginas) {
+      if (fin < totalPaginas - 1) paginas.push('...');
+      paginas.push(totalPaginas);
+    }
+    
+    return paginas;
+  };
 
   const generarConglomerados = async () => {
     try {
@@ -74,6 +161,7 @@ function Conglomerados() {
       alert(`${cantidad} conglomerado(s) generado(s) exitosamente`);
       setShowGenerarModal(false);
       setCantidad(1);
+      setPaginaActual(1); // 🆕
       cargarConglomerados();
     } catch (error) {
       console.error('Error generando conglomerados:', error);
@@ -112,27 +200,25 @@ function Conglomerados() {
     }
   };
 
-// Reemplaza COMPLETA la función obtenerClima (aprox línea 85-110)
+  const obtenerClima = async (lat, lon) => {
+    try {
+      setClimaLoading(true);
+      console.log(`🌤️ Solicitando clima del backend para: ${lat}, ${lon}`);
+      
+      const response = await axios.get('http://localhost:3003/api/conglomerados/clima/obtener', {
+        params: { lat, lon }
+      });
+      
+      console.log('✅ Clima obtenido desde backend:', response.data);
+      setClima(response.data);
+    } catch (error) {
+      console.error('❌ Error obteniendo clima:', error.message);
+      setClima(null);
+    } finally {
+      setClimaLoading(false);
+    }
+  };
 
-const obtenerClima = async (lat, lon) => {
-  try {
-    setClimaLoading(true);
-    console.log(`🌤️ Solicitando clima del backend para: ${lat}, ${lon}`);
-    
-    // ✅ LLAMAR AL BACKEND, NO A OPENWEATHER DIRECTO
-    const response = await axios.get('http://localhost:3003/api/conglomerados/clima/obtener', {
-      params: { lat, lon }
-    });
-    
-    console.log('✅ Clima obtenido desde backend:', response.data);
-    setClima(response.data);
-  } catch (error) {
-    console.error('❌ Error obteniendo clima:', error.message);
-    setClima(null);
-  } finally {
-    setClimaLoading(false);
-  }
-};
   const inicializarMapa = (lat, lon) => {
     if (mapRef.current) mapRef.current.remove();
     if (!mapContainerRef.current) return;
@@ -211,8 +297,8 @@ const obtenerClima = async (lat, lon) => {
         `http://localhost:3003/api/conglomerados/${conglomeradoSeleccionado.id}/aprobar`,
         {
           admin_id: userData.id,
-        admin_nombre: userData.nombre_completo,  // ✅ AGREGADO
-        admin_email: userData.email   
+          admin_nombre: userData.nombre_completo,
+          admin_email: userData.email   
         }
       );
       
@@ -324,13 +410,17 @@ const obtenerClima = async (lat, lon) => {
     return icons[iconCode] || '🌤️';
   };
 
+  // 🆕 CALCULAR RANGO DE RESULTADOS
+  const primerConglomerado = totalConglomerados > 0 ? (paginaActual - 1) * conglomeradosPorPagina + 1 : 0;
+  const ultimoConglomerado = Math.min(paginaActual * conglomeradosPorPagina, totalConglomerados);
+
   return (
     <div className="conglomerados-page">
-      {/* Header */}
+    {/* Header */}
       <div className="page-header">
         <div className="header-info">
           <h2 className="page-title">Gestión de Conglomerados</h2>
-          <p className="page-subtitle">Total: {conglomerados.length} conglomerados registrados</p>
+          <p className="page-subtitle">Total: {totalConglomerados} conglomerados registrados</p>
           {userData && (
             <p className="user-info">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -349,6 +439,33 @@ const obtenerClima = async (lat, lon) => {
         </button>
       </div>
 
+      {/* 🆕 BARRA DE BÚSQUEDA */}
+      <div className="search-container">
+        <form onSubmit={handleBuscar} className="search-form">
+          <div className="search-input-wrapper">
+            <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+              <path d="M21 21L16.65 16.65" stroke="currentColor" strokeWidth="2"/>
+            </svg>
+            <input
+              type="text"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar por código o municipio..."
+              className="search-input"
+            />
+          </div>
+          <button type="submit" className="btn-search">
+            Buscar
+          </button>
+          {busquedaActiva && (
+            <button type="button" onClick={limpiarBusqueda} className="btn-clear">
+              Limpiar
+            </button>
+          )}
+        </form>
+      </div>
+
       {/* Filtros */}
       <div className="filtros-container">
         {['todos', 'en_revision', 'aprobado', 'rechazado_temporal', 'rechazado_permanente'].map(f => {
@@ -356,7 +473,7 @@ const obtenerClima = async (lat, lon) => {
           return (
             <button
               key={f}
-              onClick={() => setFiltro(f)}
+              onClick={() => cambiarFiltro(f)}
               className={`filtro-btn ${filtro === f ? 'active' : ''} ${badge.class}`}
             >
               {f === 'todos' ? 'Todos' : badge.text}
@@ -364,6 +481,18 @@ const obtenerClima = async (lat, lon) => {
           );
         })}
       </div>
+
+      {/* 🆕 CONTADOR DE RESULTADOS */}
+      {!loading && conglomerados.length > 0 && (
+        <div className="results-counter">
+          <span>
+            Mostrando <strong>{primerConglomerado}-{ultimoConglomerado}</strong> de <strong>{totalConglomerados}</strong> conglomerados
+          </span>
+          <span className="page-indicator">
+            Página {paginaActual} de {totalPaginas}
+          </span>
+        </div>
+      )}
 
       {/* Contenido */}
       {loading ? (
@@ -375,66 +504,133 @@ const obtenerClima = async (lat, lon) => {
         <div className="empty-state">
           <span className="empty-icon">🗺️</span>
           <h3>No hay conglomerados</h3>
-          <p>Genera tu primer conglomerado para comenzar</p>
+          <p>{busquedaActiva ? 'No se encontraron resultados para tu búsqueda' : 'Genera tu primer conglomerado para comenzar'}</p>
         </div>
       ) : (
-        <div className="conglomerados-grid">
-          {conglomerados.map(cong => {
-            const badge = getEstadoBadge(cong.estado);
-            return (
-              <div key={cong.id} className="conglomerado-card">
-                <div className="card-header">
-                  <h3>{cong.codigo}</h3>
-                  <span className={`status-badge ${badge.class}`}>
-                    {badge.text}
-                  </span>
-                </div>
+        <>
+          <div className="conglomerados-grid">
+            {conglomerados.map(cong => {
+              const badge = getEstadoBadge(cong.estado);
+              return (
+                <div key={cong.id} className="conglomerado-card">
+                  <div className="card-header">
+                    <h3>{cong.codigo}</h3>
+                    <span className={`status-badge ${badge.class}`}>
+                      {badge.text}
+                    </span>
+                  </div>
 
-                <div className="card-body">
-                  <div className="coord-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M21 10C21 17 12 23 12 23S3 17 3 10C3 5 7 2 12 2S21 5 21 10Z" stroke="currentColor" strokeWidth="2"/>
-                      <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
-                    </svg>
-                    <span>Lat: {cong.latitud.toFixed(4)}°</span>
-                  </div>
-                  <div className="coord-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      <path d="M21 10C21 17 12 23 12 23S3 17 3 10C3 5 7 2 12 2S21 5 21 10Z" stroke="currentColor" strokeWidth="2"/>
-                      <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
-                    </svg>
-                    <span>Lng: {cong.longitud.toFixed(4)}°</span>
-                  </div>
-                  {cong.municipio && (
-                    <div className="municipio-info">
-                      📍 {cong.municipio}
-                    </div>
-                  )}
-                  {cong.modificado_por_admin_nombre && (
-                    <div className="admin-badge">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 15C15.3137 15 18 12.3137 18 9C18 5.68629 15.3137 3 12 3C8.68629 3 6 5.68629 6 9C6 12.3137 8.68629 15 12 15Z" stroke="currentColor" strokeWidth="2"/>
-                        <path d="M2 21C2 17.134 5.134 14 9 14H15C18.866 14 22 17.134 22 21" stroke="currentColor" strokeWidth="2"/>
+                  <div className="card-body">
+                    <div className="coord-item">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 10C21 17 12 23 12 23S3 17 3 10C3 5 7 2 12 2S21 5 21 10Z" stroke="currentColor" strokeWidth="2"/>
+                        <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
                       </svg>
-                      {cong.modificado_por_admin_nombre}
+                      <span>Lat: {cong.latitud.toFixed(4)}°</span>
                     </div>
-                  )}
-                </div>
+                    <div className="coord-item">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 10C21 17 12 23 12 23S3 17 3 10C3 5 7 2 12 2S21 5 21 10Z" stroke="currentColor" strokeWidth="2"/>
+                        <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                      <span>Lng: {cong.longitud.toFixed(4)}°</span>
+                    </div>
+                    {cong.municipio && (
+                      <div className="municipio-info">
+                        📍 {cong.municipio}
+                      </div>
+                    )}
+                    {cong.modificado_por_admin_nombre && (
+                      <div className="admin-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <path d="M12 15C15.3137 15 18 12.3137 18 9C18 5.68629 15.3137 3 12 3C8.68629 3 6 5.68629 6 9C6 12.3137 8.68629 15 12 15Z" stroke="currentColor" strokeWidth="2"/>
+                          <path d="M2 21C2 17.134 5.134 14 9 14H15C18.866 14 22 17.134 22 21" stroke="currentColor" strokeWidth="2"/>
+                        </svg>
+                        {cong.modificado_por_admin_nombre}
+                      </div>
+                    )}
+                  </div>
 
-                <div className="card-actions">
-                  <button className="btn-detalle" onClick={() => verDetalle(cong)}>
-                    Ver Detalles
-                  </button>
-                  {puedeEliminar(cong.estado) && (
-                    <button className="btn-eliminar" onClick={() => abrirModalEliminar(cong)}>
-                      🗑️
+                  <div className="card-actions">
+                    <button className="btn-detalle" onClick={() => verDetalle(cong)}>
+                      Ver Detalles
                     </button>
-                  )}
+                    {puedeEliminar(cong.estado) && (
+                      <button className="btn-eliminar" onClick={() => abrirModalEliminar(cong)}>
+                        🗑️
+                      </button>
+                    )}
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+
+          {/* 🆕 CONTROLES DE PAGINACIÓN */}
+          {totalPaginas > 1 && (
+            <div className="pagination-container">
+              <button
+                onClick={() => irAPagina(1)}
+                disabled={paginaActual === 1}
+                className="pagination-btn"
+                title="Primera página"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 17L13 12L18 7M11 17L6 12L11 7" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+              </button>
+
+              <button
+                onClick={() => irAPagina(paginaActual - 1)}
+                disabled={paginaActual === 1}
+                className="pagination-btn"
+                title="Página anterior"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+              </button>
+
+              <div className="pagination-numbers">
+                {obtenerPaginasVisibles().map((pagina, index) => (
+                  pagina === '...' ? (
+                    <span key={`ellipsis-${index}`} className="pagination-ellipsis">...</span>
+                  ) : (
+                    <button
+                      key={pagina}
+                      onClick={() => irAPagina(pagina)}
+                      className={`pagination-number ${paginaActual === pagina ? 'active' : ''}`}
+                    >
+                      {pagina}
+                    </button>
+                  )
+                ))}
               </div>
-            );
-          })}
-        </div>
+
+              <button
+                onClick={() => irAPagina(paginaActual + 1)}
+                disabled={paginaActual === totalPaginas}
+                className="pagination-btn"
+                title="Página siguiente"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+              </button>
+
+              <button
+                onClick={() => irAPagina(totalPaginas)}
+                disabled={paginaActual === totalPaginas}
+                className="pagination-btn"
+                title="Última página"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 17L11 12L6 7M13 17L18 12L13 7" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Modal Generar */}
