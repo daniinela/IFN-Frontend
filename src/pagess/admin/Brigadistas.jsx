@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from '../../api/axiosConfig';
 import './Brigadistas.css';
 
-const API_USUARIOS = import.meta.env.VITE_API_USUARIOS || 'http://localhost:3001';
-const API_BRIGADAS = import.meta.env.VITE_API_BRIGADAS || 'http://localhost:3002';
+const API_USUARIOS = 'https://ifn-usuarios-service.onrender.com';
+const API_BRIGADAS = 'https://ifn-brigadas-service.onrender.com';
 
 function Brigadistas() {
   const [loading, setLoading] = useState(false);

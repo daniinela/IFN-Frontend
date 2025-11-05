@@ -3,7 +3,7 @@ import { supabase } from '../../supabaseClient';
 import axios from '../../api/axiosConfig';
 import './Conglomerados.css';
 
-const API_CONGLOMERADOS = import.meta.env.VITE_API_CONGLOMERADOS || 'http://localhost:3003';
+const API_CONGLOMERADOS = 'https://ifn-conglomerados-service.onrender.com';
 
 function Conglomerados() {
   const [loading, setLoading] = useState(false);

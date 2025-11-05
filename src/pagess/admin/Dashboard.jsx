@@ -3,8 +3,8 @@ import { supabase } from '../../supabaseClient';
 import axios from '../../api/axiosConfig';
 import './AdminDashboard.css';
 
-const API_BRIGADAS = import.meta.env.VITE_API_BRIGADAS || 'http://localhost:3002';
-const API_CONGLOMERADOS = import.meta.env.VITE_API_CONGLOMERADOS || 'http://localhost:3003';
+const API_BRIGADAS = 'https://ifn-brigadas-service.onrender.com';
+const API_CONGLOMERADOS = 'https://ifn-conglomerados-service.onrender.com';
 
 function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -65,16 +65,16 @@ function Dashboard() {
         console.log('Token de Supabase obtenido:', token?.substring(0, 10) + '...');
 
         const [brigadistasRes, conglomeradosRes, brigadasRes] = await Promise.all([
-  axios.get(`${API_BRIGADAS}/api/brigadistas`, { 
-    headers: { Authorization: `Bearer ${token}` } 
-  }),
-  axios.get(`${API_CONGLOMERADOS}/api/conglomerados`, { 
-    headers: { Authorization: `Bearer ${token}` } 
-  }),
-  axios.get(`${API_BRIGADAS}/api/brigadas`, { 
-    headers: { Authorization: `Bearer ${token}` } 
-  }),
-]);
+        axios.get(`${API_BRIGADAS}/api/brigadistas`, { 
+          headers: { Authorization: `Bearer ${token}` } 
+        }),
+        axios.get(`${API_CONGLOMERADOS}/api/conglomerados`, { 
+          headers: { Authorization: `Bearer ${token}` } 
+        }),
+        axios.get(`${API_BRIGADAS}/api/brigadas`, { 
+          headers: { Authorization: `Bearer ${token}` } 
+        }),
+      ]);
 
         console.log('Respuesta de brigadistas:', brigadistasRes.data);
         console.log('Respuesta de conglomerados:', conglomeradosRes.data);

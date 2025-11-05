@@ -4,7 +4,7 @@ import { supabase } from '../../supabaseClient';
 import axios from 'axios';
 import './Login.css';
 
-const API_USUARIOS = import.meta.env.VITE_API_USUARIOS || 'http://localhost:3001';
+const API_USUARIOS = 'https://ifn-usuarios-service.onrender.com';
 
 function Login() {
   const navigate = useNavigate();
