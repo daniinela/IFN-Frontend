@@ -168,8 +168,23 @@ function Login() {
         <div className="login-row">
           
           <div className="login-col-left">
+            {/* Logo temporal - reemplaza con tu imagen cuando la tengas */}
             <div className="login-logo-container">
-              <img src="/img/ideam.png" alt="Logo IDEAM" className="login-logo" />
+              <div style={{
+                width: '150px',
+                height: '80px',
+                background: 'linear-gradient(135deg, #2E7D32 0%, #66BB6A 100%)',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '24px',
+                margin: '0 auto 2rem'
+              }}>
+                IDEAM
+              </div>
             </div>
 
             <div className="login-form-wrapper">
@@ -251,11 +266,21 @@ function Login() {
           </div>
 
           <div className="login-col-right">
-            <img 
-              src="/img/pexels-oigoralvez-34042840.jpg" 
-              alt="Login image" 
-              className="login-image"
-            />
+            {/* Fondo temporal con gradiente - reemplaza con tu imagen cuando la tengas */}
+            <div style={{
+              width: '100%',
+              height: '100%',
+              background: 'linear-gradient(135deg, #1B5E20 0%, #4CAF50 50%, #81C784 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '48px',
+              fontWeight: 'bold',
+              textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+            }}>
+              IFN
+            </div>
           </div>
 
         </div>
