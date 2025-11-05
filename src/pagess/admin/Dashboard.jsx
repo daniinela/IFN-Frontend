@@ -3,9 +3,12 @@ import { supabase } from '../../supabaseClient';
 import axios from '../../api/axiosConfig';
 import './AdminDashboard.css';
 
+<<<<<<< HEAD
 const API_BRIGADAS = 'https://ifn-brigadas-service.onrender.com';
 const API_CONGLOMERADOS = 'https://ifn-conglomerados-service.onrender.com';
 
+=======
+>>>>>>> vercel/main
 function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -65,6 +68,7 @@ function Dashboard() {
         console.log('Token de Supabase obtenido:', token?.substring(0, 10) + '...');
 
         const [brigadistasRes, conglomeradosRes, brigadasRes] = await Promise.all([
+<<<<<<< HEAD
         axios.get(`${API_BRIGADAS}/api/brigadistas`, { 
           headers: { Authorization: `Bearer ${token}` } 
         }),
@@ -75,6 +79,27 @@ function Dashboard() {
           headers: { Authorization: `Bearer ${token}` } 
         }),
       ]);
+=======
+          axios.get('http://localhost:3002/api/brigadistas', { 
+            headers: { Authorization: `Bearer ${token}` } 
+          }).catch(err => {
+            console.error('Error en brigadistas:', err.response?.status, err.response?.data || err.message);
+            return { data: [] };
+          }),
+          axios.get('http://localhost:3003/api/conglomerados', { 
+            headers: { Authorization: `Bearer ${token}` } 
+          }).catch(err => {
+            console.error('Error en conglomerados:', err.response?.status, err.response?.data || err.message);
+            return { data: [] };
+          }),
+          axios.get('http://localhost:3002/api/brigadas', { 
+            headers: { Authorization: `Bearer ${token}` } 
+          }).catch(err => {
+            console.error('Error en brigadas:', err.response?.status, err.response?.data || err.message);
+            return { data: [] };
+          }),
+        ]);
+>>>>>>> vercel/main
 
         console.log('Respuesta de brigadistas:', brigadistasRes.data);
         console.log('Respuesta de conglomerados:', conglomeradosRes.data);

@@ -4,7 +4,11 @@ import { supabase } from '../../supabaseClient';
 import axios from 'axios';
 import './Login.css';
 
+<<<<<<< HEAD
 const API_USUARIOS = 'https://ifn-usuarios-service.onrender.com';
+=======
+const API_USUARIOS = import.meta.env.VITE_API_USUARIOS || 'http://localhost:3001';
+>>>>>>> vercel/main
 
 function Login() {
   const navigate = useNavigate();
@@ -168,6 +172,7 @@ function Login() {
         <div className="login-row">
           
           <div className="login-col-left">
+<<<<<<< HEAD
             {/* Logo temporal - reemplaza con tu imagen cuando la tengas */}
             <div className="login-logo-container">
               <div style={{
@@ -185,6 +190,10 @@ function Login() {
               }}>
                 IDEAM
               </div>
+=======
+            <div className="login-logo-container">
+              <img src="/img/ideam.png" alt="Logo IDEAM" className="login-logo" />
+>>>>>>> vercel/main
             </div>
 
             <div className="login-form-wrapper">
@@ -266,6 +275,7 @@ function Login() {
           </div>
 
           <div className="login-col-right">
+<<<<<<< HEAD
             {/* Fondo temporal con gradiente - reemplaza con tu imagen cuando la tengas */}
             <div style={{
               width: '100%',
@@ -281,6 +291,13 @@ function Login() {
             }}>
               IFN
             </div>
+=======
+            <img 
+              src="/img/pexels-oigoralvez-34042840.jpg" 
+              alt="Login image" 
+              className="login-image"
+            />
+>>>>>>> vercel/main
           </div>
 
         </div>
