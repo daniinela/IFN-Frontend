@@ -16,6 +16,10 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
       'import.meta.env.VITE_MAPBOX_TOKEN': JSON.stringify(env.VITE_MAPBOX_TOKEN),
       'import.meta.env.VITE_OPENWEATHER_API_KEY': JSON.stringify(env.VITE_OPENWEATHER_API_KEY),
+      // ⬇️ AGREGANDO LAS URLs DE LAS APIs
+      'import.meta.env.VITE_API_USUARIOS': JSON.stringify(env.VITE_API_USUARIOS || 'https://ifn-usuarios-service.onrender.com'),
+      'import.meta.env.VITE_API_BRIGADAS': JSON.stringify(env.VITE_API_BRIGADAS || 'https://ifn-brigadas-service.onrender.com'),
+      'import.meta.env.VITE_API_CONGLOMERADOS': JSON.stringify(env.VITE_API_CONGLOMERADOS || 'https://ifn-conglomerados-service.onrender.com'),
     },
     server: {
       port: 5173, // Puerto por defecto de Vite
