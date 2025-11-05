@@ -168,10 +168,6 @@ function Login() {
         <div className="login-row">
           
           <div className="login-col-left">
-            <div className="login-logo-container">
-              <img src="/img/ideam.png" alt="Logo IDEAM" className="login-logo" />
-            </div>
-
             <div className="login-form-wrapper">
               <form onSubmit={handleSubmit} className="login-form">
                 <h3 className="login-title">Iniciar Sesión</h3>
@@ -250,13 +246,6 @@ function Login() {
             </div>
           </div>
 
-          <div className="login-col-right">
-            <img 
-              src="/img/pexels-oigoralvez-34042840.jpg" 
-              alt="Login image" 
-              className="login-image"
-            />
-          </div>
 
         </div>
       </div>
