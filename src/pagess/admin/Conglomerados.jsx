@@ -3,6 +3,8 @@ import { supabase } from '../../supabaseClient';
 import axios from '../../api/axiosConfig';
 import './Conglomerados.css';
 
+const API_CONGLOMERADOS = import.meta.env.VITE_API_CONGLOMERADOS || 'http://localhost:3003';
+
 function Conglomerados() {
   const [loading, setLoading] = useState(false);
   const [conglomerados, setConglomerados] = useState([]);
@@ -28,10 +30,10 @@ function Conglomerados() {
       const token = session.access_token;
 
       const [statsRes, congloRes] = await Promise.all([
-        axios.get('http://localhost:3001/api/conglomerados/estadisticas', {
+        axios.get(`${API_CONGLOMERADOS}/api/conglomerados/estadisticas`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get('http://localhost:3001/api/conglomerados?limit=50', {
+        axios.get(`${API_CONGLOMERADOS}/api/conglomerados?limit=50`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);
@@ -55,7 +57,7 @@ function Conglomerados() {
       const token = session.access_token;
 
       await axios.post(
-        'http://localhost:3001/api/conglomerados/generar-batch',
+        `${API_CONGLOMERADOS}/api/conglomerados/generar-batch`,
         { cantidad },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -65,7 +67,6 @@ function Conglomerados() {
         text: `✅ ${cantidad} conglomerados generados exitosamente` 
       });
 
-      // Recargar datos
       await cargarDatos();
     } catch (error) {
       console.error('Error generando:', error);
@@ -87,7 +88,7 @@ function Conglomerados() {
       const token = session.access_token;
 
       const response = await axios.post(
-        'http://localhost:3001/api/conglomerados/tomar-sin-asignar',
+        `${API_CONGLOMERADOS}/api/conglomerados/tomar-sin-asignar`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -133,7 +134,6 @@ function Conglomerados() {
         </div>
       )}
 
-      {/* Estadísticas */}
       <div className="stats-grid">
         <div className="stat-card">
           <h3>{estadisticas.sin_asignar}</h3>
@@ -153,7 +153,6 @@ function Conglomerados() {
         </div>
       </div>
 
-      {/* Acciones */}
       <div className="actions-section">
         <div className="action-card">
           <h3>Generar Conglomerados</h3>
@@ -179,7 +178,6 @@ function Conglomerados() {
         </div>
       </div>
 
-      {/* Tabla */}
       <div className="table-section">
         <h3>Últimos Conglomerados ({conglomerados.length})</h3>
         <div className="table-container">

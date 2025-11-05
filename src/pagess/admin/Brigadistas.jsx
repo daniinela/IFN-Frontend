@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from '../../api/axiosConfig';
 import './Brigadistas.css';
 
+const API_USUARIOS = import.meta.env.VITE_API_USUARIOS || 'http://localhost:3001';
+const API_BRIGADAS = import.meta.env.VITE_API_BRIGADAS || 'http://localhost:3002';
+
 function Brigadistas() {
   const [loading, setLoading] = useState(false);
   const [brigadistas, setBrigadistas] = useState([]);
@@ -10,19 +13,17 @@ function Brigadistas() {
   const [brigadistasPendientes, setBrigadistasPendientes] = useState([]);
   const [emailInvitacion, setEmailInvitacion] = useState('');
   
-  // Modales
   const [showCrearModal, setShowCrearModal] = useState(false);
   const [showDetalleModal, setShowDetalleModal] = useState(false);
   const [showEliminarModal, setShowEliminarModal] = useState(false);
   
-  // Formularios
   const [brigadistaSeleccionado, setBrigadistaSeleccionado] = useState(null);
   const [usuarioDatos, setUsuarioDatos] = useState(null);
 
   const cargarBrigadistas = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:3002/api/brigadistas');
+      const response = await axios.get(`${API_BRIGADAS}/api/brigadistas`);
       setBrigadistas(response.data);
     } catch (error) {
       console.error('Error cargando brigadistas:', error);
@@ -34,7 +35,7 @@ function Brigadistas() {
 
   const cargarUsuarios = useCallback(async () => {
     try {
-      const response = await axios.get('http://localhost:3001/api/usuarios');
+      const response = await axios.get(`${API_USUARIOS}/api/usuarios`);
       const pendientes = response.data.filter(u => 
         u.rol === 'brigadista' && 
         !brigadistas.some(b => b.user_id === u.id)
@@ -47,7 +48,7 @@ function Brigadistas() {
 
   const cargarUsuarioPorId = useCallback(async (userId) => {
     try {
-      const response = await axios.get(`http://localhost:3001/api/usuarios/${userId}`);
+      const response = await axios.get(`${API_USUARIOS}/api/usuarios/${userId}`);
       setUsuarioDatos(response.data);
     } catch (error) {
       console.error('Error cargando usuario:', error);
@@ -80,7 +81,7 @@ function Brigadistas() {
       setLoading(true);
 
       await axios.post(
-        'http://localhost:3001/api/usuarios/invite',
+        `${API_USUARIOS}/api/usuarios/invite`,
         { 
           email: emailInvitacion,
           rol: 'brigadista'
@@ -105,41 +106,35 @@ function Brigadistas() {
     }
   };
 
-const eliminarBrigadista = async () => {
-  try {
-    setLoading(true);
-    
-    console.log('🗑️ Eliminando brigadista:', brigadistaSeleccionado.id);
-    console.log('User ID:', brigadistaSeleccionado.user_id);
-    
-    // ✅ PRIMERO: Eliminar desde usuarios-service (esto eliminará en cascada)
-    if (brigadistaSeleccionado.user_id) {
-      console.log('Llamando a usuarios-service...');
-      await axios.delete(
-        `http://localhost:3001/api/usuarios/${brigadistaSeleccionado.user_id}`
-      );
-      console.log('✅ Eliminado de usuarios-service (cascada a brigadistas y auth)');
-    } else {
-      // Si no tiene user_id, eliminar solo de brigadistas
-      console.log('Sin user_id, eliminando solo brigadista...');
-      await axios.delete(
-        `http://localhost:3002/api/brigadistas/${brigadistaSeleccionado.id}`
-      );
-      console.log('✅ Eliminado solo de brigadistas');
+  const eliminarBrigadista = async () => {
+    try {
+      setLoading(true);
+      
+      console.log('🗑️ Eliminando brigadista:', brigadistaSeleccionado.id);
+      console.log('User ID:', brigadistaSeleccionado.user_id);
+      
+      if (brigadistaSeleccionado.user_id) {
+        console.log('Llamando a usuarios-service...');
+        await axios.delete(`${API_USUARIOS}/api/usuarios/${brigadistaSeleccionado.user_id}`);
+        console.log('✅ Eliminado de usuarios-service (cascada a brigadistas y auth)');
+      } else {
+        console.log('Sin user_id, eliminando solo brigadista...');
+        await axios.delete(`${API_BRIGADAS}/api/brigadistas/${brigadistaSeleccionado.id}`);
+        console.log('✅ Eliminado solo de brigadistas');
+      }
+      
+      alert('✅ Brigadista eliminado exitosamente de todas las tablas');
+      setShowEliminarModal(false);
+      setBrigadistaSeleccionado(null);
+      cargarBrigadistas();
+      
+    } catch (error) {
+      console.error('❌ Error eliminando:', error);
+      alert(error.response?.data?.error || 'Error al eliminar brigadista');
+    } finally {
+      setLoading(false);
     }
-    
-    alert('✅ Brigadista eliminado exitosamente de todas las tablas');
-    setShowEliminarModal(false);
-    setBrigadistaSeleccionado(null);
-    cargarBrigadistas();
-    
-  } catch (error) {
-    console.error('❌ Error eliminando:', error);
-    alert(error.response?.data?.error || 'Error al eliminar brigadista');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const brigadistasFiltrados = brigadistas.filter(b => {
     const cumpleRol = filtroRol === 'todos' || b.rol === filtroRol;
@@ -160,7 +155,6 @@ const eliminarBrigadista = async () => {
 
   return (
     <div className="brigadistas-container">
-      {/* Header */}
       <div className="brigadistas-header">
         <div className="header-info">
           <h2 className="brigadistas-title">Gestión de Brigadistas</h2>
@@ -172,7 +166,6 @@ const eliminarBrigadista = async () => {
         </button>
       </div>
 
-      {/* Alerta de pendientes */}
       {brigadistasPendientes.length > 0 && (
         <div className="alert-pendientes">
           <span className="alert-icon">⏳</span>
@@ -190,7 +183,6 @@ const eliminarBrigadista = async () => {
         </div>
       )}
 
-      {/* Filtros */}
       <div className="brigadistas-filters">
         <div className="filter-buttons">
           {['todos', 'jefe', 'botanico', 'tecnico', 'coinvestigador'].map(rol => {
@@ -219,7 +211,6 @@ const eliminarBrigadista = async () => {
         </div>
       </div>
 
-      {/* Lista */}
       {loading ? (
         <div className="loading-state">
           <div className="loading-spinner"></div>
@@ -310,7 +301,6 @@ const eliminarBrigadista = async () => {
         </div>
       )}
 
-      {/* Modal Invitar */}
       {showCrearModal && (
         <div className="modal-overlay" onClick={() => setShowCrearModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -335,7 +325,6 @@ const eliminarBrigadista = async () => {
                 />
               </div>
 
-              {/* Lista de usuarios pendientes */}
               {brigadistasPendientes.length > 0 && (
                 <div className="pendientes-box">
                   <h4 className="pendientes-title">
@@ -385,7 +374,6 @@ const eliminarBrigadista = async () => {
         </div>
       )}
 
-      {/* Modal Detalle */}
       {showDetalleModal && brigadistaSeleccionado && (
         <div className="modal-overlay" onClick={() => setShowDetalleModal(false)}>
           <div className="modal-content modal-large" onClick={e => e.stopPropagation()}>
@@ -496,7 +484,6 @@ const eliminarBrigadista = async () => {
         </div>
       )}
 
-      {/* Modal Eliminar */}
       {showEliminarModal && brigadistaSeleccionado && (
         <div className="modal-overlay" onClick={() => setShowEliminarModal(false)}>
           <div className="modal-content modal-confirm" onClick={e => e.stopPropagation()}>

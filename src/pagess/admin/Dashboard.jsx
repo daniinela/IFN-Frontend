@@ -3,6 +3,9 @@ import { supabase } from '../../supabaseClient';
 import axios from '../../api/axiosConfig';
 import './AdminDashboard.css';
 
+const API_BRIGADAS = import.meta.env.VITE_API_BRIGADAS || 'http://localhost:3002';
+const API_CONGLOMERADOS = import.meta.env.VITE_API_CONGLOMERADOS || 'http://localhost:3003';
+
 function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -62,25 +65,16 @@ function Dashboard() {
         console.log('Token de Supabase obtenido:', token?.substring(0, 10) + '...');
 
         const [brigadistasRes, conglomeradosRes, brigadasRes] = await Promise.all([
-          axios.get('http://localhost:3002/api/brigadistas', { 
-            headers: { Authorization: `Bearer ${token}` } 
-          }).catch(err => {
-            console.error('Error en brigadistas:', err.response?.status, err.response?.data || err.message);
-            return { data: [] };
-          }),
-          axios.get('http://localhost:3003/api/conglomerados', { 
-            headers: { Authorization: `Bearer ${token}` } 
-          }).catch(err => {
-            console.error('Error en conglomerados:', err.response?.status, err.response?.data || err.message);
-            return { data: [] };
-          }),
-          axios.get('http://localhost:3002/api/brigadas', { 
-            headers: { Authorization: `Bearer ${token}` } 
-          }).catch(err => {
-            console.error('Error en brigadas:', err.response?.status, err.response?.data || err.message);
-            return { data: [] };
-          }),
-        ]);
+  axios.get(`${API_BRIGADAS}/api/brigadistas`, { 
+    headers: { Authorization: `Bearer ${token}` } 
+  }),
+  axios.get(`${API_CONGLOMERADOS}/api/conglomerados`, { 
+    headers: { Authorization: `Bearer ${token}` } 
+  }),
+  axios.get(`${API_BRIGADAS}/api/brigadas`, { 
+    headers: { Authorization: `Bearer ${token}` } 
+  }),
+]);
 
         console.log('Respuesta de brigadistas:', brigadistasRes.data);
         console.log('Respuesta de conglomerados:', conglomeradosRes.data);
