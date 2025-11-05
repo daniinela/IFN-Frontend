@@ -1,9 +1,10 @@
-// frontend/src/pages/Login/Login.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabaseClient'; 
-import axios from '../../api/axiosConfig';
+import axios from 'axios';
 import './Login.css';
+
+const API_USUARIOS = import.meta.env.VITE_API_USUARIOS || 'http://localhost:3001';
 
 function Login() {
   const navigate = useNavigate();
@@ -34,19 +35,16 @@ function Login() {
         }
 
         try {
-          // ✅ CAMBIO: Puerto correcto (3000 para usuarios-service)
-          const response = await axios.post('http://localhost:3001/api/usuarios/login', {
+          const response = await axios.post(`${API_USUARIOS}/api/usuarios/login`, {
             email: user.email
           });
 
           const { user: userData, roles, privilegios } = response.data;
 
-          // ✅ Guardar datos completos
           localStorage.setItem('user-data', JSON.stringify(userData));
           localStorage.setItem('user-roles', JSON.stringify(roles));
           localStorage.setItem('user-privilegios', JSON.stringify(privilegios));
 
-          // ✅ Redirigir según el rol principal
           if (roles.length === 0) {
             setError('Usuario sin roles asignados');
             await supabase.auth.signOut();
@@ -57,7 +55,6 @@ function Login() {
 
           const rolPrincipal = roles[0].codigo;
 
-          // ✅ CAMBIO: Agregar coord_georef y coord_brigadas
           if (['super_admin', 'coord_georef', 'coord_brigadas'].includes(rolPrincipal)) {
             navigate('/admin/dashboard');
           } else if (rolPrincipal === 'brigadista') {
@@ -87,7 +84,6 @@ function Login() {
     setError('');
 
     try {
-      // ✅ PASO 1: Login con Supabase
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password
@@ -109,25 +105,19 @@ function Login() {
 
       const token = data.session.access_token;
       localStorage.setItem('token', token);
-      console.log('✅ Token guardado en localStorage');
 
-      // ✅ PASO 2: Obtener datos del usuario, roles y privilegios
-      // ✅ CAMBIO: Puerto correcto (3000 para usuarios-service)
-      const response = await axios.post('http://localhost:3001/api/usuarios/login', {
+      const response = await axios.post(`${API_USUARIOS}/api/usuarios/login`, {
         email: formData.email
       });
 
       const { user: userData, roles, privilegios } = response.data;
       console.log('✅ Datos de usuario:', userData);
       console.log('✅ Roles:', roles);
-      console.log('✅ Privilegios:', privilegios);
 
-      // ✅ PASO 3: Guardar en localStorage
       localStorage.setItem('user-data', JSON.stringify(userData));
       localStorage.setItem('user-roles', JSON.stringify(roles));
       localStorage.setItem('user-privilegios', JSON.stringify(privilegios));
 
-      // ✅ PASO 4: Redirigir según el rol principal
       if (roles.length === 0) {
         setError('Usuario sin roles asignados. Contacta al administrador.');
         await supabase.auth.signOut();
@@ -136,14 +126,10 @@ function Login() {
       }
 
       const rolPrincipal = roles[0].codigo;
-      console.log('🔐 Rol principal:', rolPrincipal);
 
-      // ✅ CAMBIO: Agregar coord_georef y coord_brigadas
       if (['super_admin', 'coord_georef', 'coord_brigadas'].includes(rolPrincipal)) {
-        console.log('🔐 Redirigiendo a /admin/dashboard');
         navigate('/admin/dashboard');
       } else if (rolPrincipal === 'brigadista') {
-        console.log('🔐 Redirigiendo a /brigadista/dashboard');
         navigate('/brigadista/dashboard');
       } else {
         setError('Rol no autorizado: ' + rolPrincipal);
@@ -181,7 +167,6 @@ function Login() {
       <div className="login-container-fluid">
         <div className="login-row">
           
-          {/* Columna izquierda: formulario */}
           <div className="login-col-left">
             <div className="login-logo-container">
               <img src="img/ideam.png" alt="Logo IDEAM" className="login-logo" />
@@ -265,7 +250,6 @@ function Login() {
             </div>
           </div>
 
-          {/* Columna derecha: imagen */}
           <div className="login-col-right">
             <img 
               src="img/pexels-oigoralvez-34042840.jpg" 
