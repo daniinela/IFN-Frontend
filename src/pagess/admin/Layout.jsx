@@ -1,3 +1,4 @@
+// AdminLayout.jsx
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
@@ -9,7 +10,10 @@ function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   
+  // ✅ Obtener datos del usuario y roles
   const userData = JSON.parse(localStorage.getItem('user-data') || '{}');
+  const userRoles = JSON.parse(localStorage.getItem('user-roles') || '[]');
+  const rolPrincipal = userRoles[0]?.codigo || '';
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -34,8 +38,7 @@ function AdminLayout() {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      localStorage.removeItem('sb-access-token');
-      localStorage.removeItem('user-data');
+      localStorage.clear();
       navigate('/login');
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
@@ -43,53 +46,64 @@ function AdminLayout() {
     }
   };
 
-  const menuItems = [
-    { 
-      path: '/admin/dashboard', 
-      label: 'Dashboard', 
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="3" width="7" height="7" />
-          <rect x="14" y="3" width="7" height="7" />
-          <rect x="14" y="14" width="7" height="7" />
-          <rect x="3" y="14" width="7" height="7" />
-        </svg>
-      )
-    },
-    { 
-      path: '/admin/conglomerados', 
-      label: 'Conglomerados', 
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-          <circle cx="12" cy="10" r="3" />
-        </svg>
-      )
-    },
-    { 
-      path: '/admin/brigadas', 
-      label: 'Brigadas', 
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-      )
-    },
-    { 
-      path: '/admin/brigadistas', 
-      label: 'Brigadistas', 
-      icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-      )
-    },
-  ];
+  // ✅ MENÚ DINÁMICO SEGÚN ROL
+  const getMenuItems = () => {
+    const allMenuItems = [
+      { 
+        path: '/admin/dashboard', 
+        label: 'Dashboard',
+        roles: ['super_admin', 'coord_georef', 'coord_brigadas'], // Todos lo ven
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+        )
+      },
+      { 
+        path: '/admin/conglomerados', 
+        label: 'Conglomerados',
+        roles: ['super_admin', 'coord_georef'], // Solo estos roles
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+        )
+      },
+      { 
+        path: '/admin/brigadas', 
+        label: 'Brigadas',
+        roles: ['super_admin', 'coord_brigadas'], // Solo estos roles
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        )
+      },
+      { 
+        path: '/admin/brigadistas', 
+        label: 'Brigadistas',
+        roles: ['super_admin', 'coord_brigadas'], // Solo estos roles
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        )
+      },
+    ];
 
+    // ✅ Filtrar menú según el rol del usuario
+    return allMenuItems.filter(item => item.roles.includes(rolPrincipal));
+  };
+
+  const menuItems = getMenuItems();
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -109,7 +123,12 @@ function AdminLayout() {
           {sidebarOpen && (
             <div className="logo-text-wrapper">
               <h2 className="logo-text">IFN Admin</h2>
-              <p className="logo-subtitle">Sistema Forestal</p>
+              <p className="logo-subtitle">
+                {/* ✅ Mostrar rol del usuario */}
+                {rolPrincipal === 'super_admin' && 'Super Admin'}
+                {rolPrincipal === 'coord_georef' && 'Georreferenciación'}
+                {rolPrincipal === 'coord_brigadas' && 'Brigadas'}
+              </p>
             </div>
           )}
         </div>

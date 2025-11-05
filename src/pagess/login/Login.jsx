@@ -1,3 +1,4 @@
+// frontend/src/pages/Login/Login.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabaseClient'; 
@@ -33,18 +34,36 @@ function Login() {
         }
 
         try {
+          // ✅ CAMBIO: Puerto correcto (3000 para usuarios-service)
           const response = await axios.post('http://localhost:3001/api/usuarios/login', {
             email: user.email
           });
 
-          const userData = response.data.user;
-          localStorage.setItem('user-data', JSON.stringify(userData));
+          const { user: userData, roles, privilegios } = response.data;
 
-          if (userData.rol === 'admin') {
+          // ✅ Guardar datos completos
+          localStorage.setItem('user-data', JSON.stringify(userData));
+          localStorage.setItem('user-roles', JSON.stringify(roles));
+          localStorage.setItem('user-privilegios', JSON.stringify(privilegios));
+
+          // ✅ Redirigir según el rol principal
+          if (roles.length === 0) {
+            setError('Usuario sin roles asignados');
+            await supabase.auth.signOut();
+            localStorage.clear();
+            setCheckingSession(false);
+            return;
+          }
+
+          const rolPrincipal = roles[0].codigo;
+
+          // ✅ CAMBIO: Agregar coord_georef y coord_brigadas
+          if (['super_admin', 'coord_georef', 'coord_brigadas'].includes(rolPrincipal)) {
             navigate('/admin/dashboard');
-          } else if (userData.rol === 'brigadista') {
+          } else if (rolPrincipal === 'brigadista') {
             navigate('/brigadista/dashboard');
           } else {
+            setError('Rol no reconocido');
             setCheckingSession(false);
           }
         } catch (err) {
@@ -68,6 +87,7 @@ function Login() {
     setError('');
 
     try {
+      // ✅ PASO 1: Login con Supabase
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password
@@ -91,23 +111,42 @@ function Login() {
       localStorage.setItem('token', token);
       console.log('✅ Token guardado en localStorage');
 
+      // ✅ PASO 2: Obtener datos del usuario, roles y privilegios
+      // ✅ CAMBIO: Puerto correcto (3000 para usuarios-service)
       const response = await axios.post('http://localhost:3001/api/usuarios/login', {
         email: formData.email
       });
 
-      const userData = response.data.user;
+      const { user: userData, roles, privilegios } = response.data;
       console.log('✅ Datos de usuario:', userData);
+      console.log('✅ Roles:', roles);
+      console.log('✅ Privilegios:', privilegios);
 
+      // ✅ PASO 3: Guardar en localStorage
       localStorage.setItem('user-data', JSON.stringify(userData));
+      localStorage.setItem('user-roles', JSON.stringify(roles));
+      localStorage.setItem('user-privilegios', JSON.stringify(privilegios));
 
-      if (userData.rol === 'admin') {
+      // ✅ PASO 4: Redirigir según el rol principal
+      if (roles.length === 0) {
+        setError('Usuario sin roles asignados. Contacta al administrador.');
+        await supabase.auth.signOut();
+        localStorage.clear();
+        return;
+      }
+
+      const rolPrincipal = roles[0].codigo;
+      console.log('🔐 Rol principal:', rolPrincipal);
+
+      // ✅ CAMBIO: Agregar coord_georef y coord_brigadas
+      if (['super_admin', 'coord_georef', 'coord_brigadas'].includes(rolPrincipal)) {
         console.log('🔐 Redirigiendo a /admin/dashboard');
         navigate('/admin/dashboard');
-      } else if (userData.rol === 'brigadista') {
+      } else if (rolPrincipal === 'brigadista') {
         console.log('🔐 Redirigiendo a /brigadista/dashboard');
         navigate('/brigadista/dashboard');
       } else {
-        setError('Rol no autorizado: ' + userData.rol);
+        setError('Rol no autorizado: ' + rolPrincipal);
         await supabase.auth.signOut();
         localStorage.clear();
       }

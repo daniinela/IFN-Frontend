@@ -1,40 +1,67 @@
-// frontend/src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pagess/login/Login.jsx';
-import Register from './pagess/register/Register.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
-
-// ADMIN
-import AdminLayout from './pagess/admin/Layout.jsx';
-import Dashboard from './pagess/admin/Dashboard.jsx';
-import Conglomerados from './pagess/admin/Conglomerados.jsx';
-import Brigadas from './pagess/admin/Brigadas.jsx';
-import Brigadistas from './pagess/admin/Brigadistas.jsx';
+import Login from './pagess/login/Login';
+import AdminLayout from './pagess/admin/Layout';  
+import Dashboard from './pagess/admin/Dashboard';      
+import Conglomerados from './pagess/admin/Conglomerados';
+import Brigadas from './pagess/admin/Brigadas';
+import Brigadistas from './pagess/admin/Brigadistas';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Redirección por defecto al login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-
-        {/* Rutas públicas */}
+        {/* Ruta pública */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        {/* 🧩 Rutas protegidas para ADMIN */}
-        <Route
-          path="/admin"
+        
+        {/* Rutas protegidas de Admin */}
+        <Route 
+          path="/admin" 
           element={
-            <ProtectedRoute>
-              <AdminLayout />
-            </ProtectedRoute>
+            <ProtectedRoute allowedRoles={['super_admin', 'coord_georef', 'coord_brigadas']} />
           }
         >
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="conglomerados" element={<Conglomerados />} />
-          <Route path="/admin/brigadas" element={<Brigadas />} />
-          <Route path="/admin/brigadistas" element={<Brigadistas />} />
+          <Route element={<AdminLayout />}>
+            {/* Dashboard - Todos los roles */}
+            <Route path="dashboard" element={<Dashboard />} />
+            
+            {/* Conglomerados - Solo coord_georef y super_admin */}
+            <Route 
+              path="conglomerados" 
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'coord_georef']}>
+                  <Conglomerados />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Brigadas - Solo coord_brigadas y super_admin */}
+            <Route 
+              path="brigadas" 
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'coord_brigadas']}>
+                  <Brigadas />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Brigadistas - Solo coord_brigadas y super_admin */}
+            <Route 
+              path="brigadistas" 
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'coord_brigadas']}>
+                  <Brigadistas />
+                </ProtectedRoute>
+              } 
+            />
+          </Route>
         </Route>
+
+        {/* Redirect raíz a login */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        
+        {/* 404 */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );
