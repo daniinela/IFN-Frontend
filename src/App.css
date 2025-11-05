@@ -1,0 +1,8 @@
+/* frontend/src/App.css */
+/* Estilos específicos de la app si los necesitas */
+/* Por ahora puede estar vacío o con estilos generales */
+
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+}

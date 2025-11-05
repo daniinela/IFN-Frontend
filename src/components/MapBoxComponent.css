@@ -1,0 +1,136 @@
+/* frontend/src/components/MapboxComponent.css */
+.mapbox-container {
+  width: 100%;
+  height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.mapbox-gl {
+  width: 100%;
+  height: 100%;
+}
+
+/* Marcador personalizado */
+.map-marker {
+  width: 30px;
+  height: 30px;
+  background: #ef4444;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 3px solid white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: rotate(-45deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-45deg) translateY(-10px);
+  }
+}
+
+/* Popup */
+.map-popup .mapboxgl-popup-content {
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  background: white;
+  border: none;
+}
+
+.map-popup .mapboxgl-popup-tip {
+  border-top-color: white;
+  border-bottom-color: white;
+}
+
+.popup-content h4 {
+  margin: 0 0 10px 0;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.popup-content p {
+  margin: 5px 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Error */
+.map-error {
+  width: 100%;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fee;
+  border-radius: 12px;
+  color: #c33;
+  font-weight: 500;
+  border: 2px dashed #fcc;
+}
+
+/* Controles de mapa */
+.mapboxgl-ctrl-group {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.mapboxgl-ctrl-zoom-in,
+.mapboxgl-ctrl-zoom-out {
+  border-radius: 8px !important;
+}
+
+.mapboxgl-ctrl-fullscreen {
+  border-radius: 8px !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mapbox-container {
+    height: 300px;
+  }
+  
+  .map-marker {
+    width: 25px;
+    height: 25px;
+  }
+  
+  .popup-content h4 {
+    font-size: 16px;
+  }
+  
+  .popup-content p {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mapbox-container {
+    height: 250px;
+  }
+  
+  .map-marker {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .popup-content {
+    padding: 15px;
+  }
+  
+  .popup-content h4 {
+    font-size: 14px;
+  }
+  
+  .popup-content p {
+    font-size: 12px;
+  }
+}
