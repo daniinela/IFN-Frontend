@@ -3,12 +3,6 @@ import { supabase } from '../../supabaseClient';
 import axios from '../../api/axiosConfig';
 import './AdminDashboard.css';
 
-<<<<<<< HEAD
-const API_BRIGADAS = 'https://ifn-brigadas-service.onrender.com';
-const API_CONGLOMERADOS = 'https://ifn-conglomerados-service.onrender.com';
-
-=======
->>>>>>> vercel/main
 function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -68,18 +62,6 @@ function Dashboard() {
         console.log('Token de Supabase obtenido:', token?.substring(0, 10) + '...');
 
         const [brigadistasRes, conglomeradosRes, brigadasRes] = await Promise.all([
-<<<<<<< HEAD
-        axios.get(`${API_BRIGADAS}/api/brigadistas`, { 
-          headers: { Authorization: `Bearer ${token}` } 
-        }),
-        axios.get(`${API_CONGLOMERADOS}/api/conglomerados`, { 
-          headers: { Authorization: `Bearer ${token}` } 
-        }),
-        axios.get(`${API_BRIGADAS}/api/brigadas`, { 
-          headers: { Authorization: `Bearer ${token}` } 
-        }),
-      ]);
-=======
           axios.get('http://localhost:3002/api/brigadistas', { 
             headers: { Authorization: `Bearer ${token}` } 
           }).catch(err => {
@@ -99,7 +81,6 @@ function Dashboard() {
             return { data: [] };
           }),
         ]);
->>>>>>> vercel/main
 
         console.log('Respuesta de brigadistas:', brigadistasRes.data);
         console.log('Respuesta de conglomerados:', conglomeradosRes.data);

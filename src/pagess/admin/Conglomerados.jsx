@@ -3,11 +3,6 @@ import { supabase } from '../../supabaseClient';
 import axios from '../../api/axiosConfig';
 import './Conglomerados.css';
 
-<<<<<<< HEAD
-const API_CONGLOMERADOS = 'https://ifn-conglomerados-service.onrender.com';
-
-=======
->>>>>>> vercel/main
 function Conglomerados() {
   const [loading, setLoading] = useState(false);
   const [conglomerados, setConglomerados] = useState([]);
@@ -33,17 +28,10 @@ function Conglomerados() {
       const token = session.access_token;
 
       const [statsRes, congloRes] = await Promise.all([
-<<<<<<< HEAD
-        axios.get(`${API_CONGLOMERADOS}/api/conglomerados/estadisticas`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${API_CONGLOMERADOS}/api/conglomerados?limit=50`, {
-=======
         axios.get('http://localhost:3001/api/conglomerados/estadisticas', {
           headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get('http://localhost:3001/api/conglomerados?limit=50', {
->>>>>>> vercel/main
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);
@@ -67,11 +55,7 @@ function Conglomerados() {
       const token = session.access_token;
 
       await axios.post(
-<<<<<<< HEAD
-        `${API_CONGLOMERADOS}/api/conglomerados/generar-batch`,
-=======
         'http://localhost:3001/api/conglomerados/generar-batch',
->>>>>>> vercel/main
         { cantidad },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -81,10 +65,7 @@ function Conglomerados() {
         text: `✅ ${cantidad} conglomerados generados exitosamente` 
       });
 
-<<<<<<< HEAD
-=======
       // Recargar datos
->>>>>>> vercel/main
       await cargarDatos();
     } catch (error) {
       console.error('Error generando:', error);
@@ -106,11 +87,7 @@ function Conglomerados() {
       const token = session.access_token;
 
       const response = await axios.post(
-<<<<<<< HEAD
-        `${API_CONGLOMERADOS}/api/conglomerados/tomar-sin-asignar`,
-=======
         'http://localhost:3001/api/conglomerados/tomar-sin-asignar',
->>>>>>> vercel/main
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -156,10 +133,7 @@ function Conglomerados() {
         </div>
       )}
 
-<<<<<<< HEAD
-=======
       {/* Estadísticas */}
->>>>>>> vercel/main
       <div className="stats-grid">
         <div className="stat-card">
           <h3>{estadisticas.sin_asignar}</h3>
@@ -179,10 +153,7 @@ function Conglomerados() {
         </div>
       </div>
 
-<<<<<<< HEAD
-=======
       {/* Acciones */}
->>>>>>> vercel/main
       <div className="actions-section">
         <div className="action-card">
           <h3>Generar Conglomerados</h3>
@@ -208,10 +179,7 @@ function Conglomerados() {
         </div>
       </div>
 
-<<<<<<< HEAD
-=======
       {/* Tabla */}
->>>>>>> vercel/main
       <div className="table-section">
         <h3>Últimos Conglomerados ({conglomerados.length})</h3>
         <div className="table-container">
