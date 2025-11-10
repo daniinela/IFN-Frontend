@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import axios from '../../api/axiosConfig';
 import './SuperAdminDashboard.css';
-
 function SuperAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -200,7 +199,6 @@ function SuperAdminDashboard() {
       </div>
     );
   }
-
   return (
     <div className="superadmin-dashboard">
       <div className="dashboard-header">
@@ -243,7 +241,6 @@ function SuperAdminDashboard() {
           </div>
         ))}
       </div>
-
       <div className="quick-actions-section">
         <h3 className="section-title">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -264,7 +261,6 @@ function SuperAdminDashboard() {
               <p>Crear nuevos puntos de muestreo</p>
             </div>
           </button>
-
           <button className="action-card warning-action">
             <div className="action-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -278,7 +274,6 @@ function SuperAdminDashboard() {
               <p>Distribuir conglomerados a coordinadores</p>
             </div>
           </button>
-
           <button className="action-card success-action">
             <div className="action-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -291,7 +286,6 @@ function SuperAdminDashboard() {
               <p>Crear y administrar cuentas</p>
             </div>
           </button>
-
           <button className="action-card info-action">
             <div className="action-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

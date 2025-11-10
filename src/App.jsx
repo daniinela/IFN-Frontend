@@ -1,70 +1,58 @@
-// src/App.jsx
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
-
-// Layouts
-import SuperAdminLayout from './components/SuperAdminLayout';
-import AdminLayout from './components/AdminLayout'; // Para otros roles
+import DashboardLayout from './components/DashboardLayout';
+import RoleBasedDashboard from './pages/shared/RoleBasedDashboard';
 
 // Auth
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
 // Super Admin
-//import SuperAdminDashboard from './pages/SuperAdmin/SuperAdminDashboard';
-import GenerarYAsignar from './pages/SuperAdmin/GenerarYAsignar';
+import GenerarYAsignar from './pages/superadmin/GenerarYAsignar';
 
-// Shared (otros módulos existentes - mantenlos como estaban)
-import Dashboard from './pages/shared/Dashboard';
-import Brigadistas from './pages/shared/Brigadistas';
-import Brigadas from './pages/shared/Brigadas';
+// Coord Georef
+import MisConglomerados from './pages/coordgeoref/MisConglomerados';
+
+// Coord Brigadas
+import Brigadas from './pages/coordbrigadas/Brigadas';
+import Brigadistas from './pages/coordbrigadas/Brigadistas';
+
+// Shared
+import NotFound from './pages/shared/NotFound';
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        {/* Ruta pública */}
+        {/* Rutas públicas */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register/:token" element={<Register />} />
-
-        {/* Super Admin Routes */}
-        <Route element={<ProtectedRoute allowedRoles={['super_admin']} />}>
-          <Route element={<SuperAdminLayout />}>
-            <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
-            <Route path="/superadmin/generar-asignar" element={<GenerarYAsignar />} />
-            <Route path="/superadmin/usuarios" element={<div>Usuarios (por crear)</div>} />
-            <Route path="/superadmin/reportes" element={<div>Reportes (por crear)</div>} />
+        <Route path="/register" element={<Register />} />
+        
+        {/* Rutas protegidas con Layout único */}
+        <Route element={<ProtectedRoute allowedRoles={['super_admin', 'coord_georef', 'coord_brigadas', 'brigadista']} />}>
+          <Route element={<DashboardLayout />}>
+            
+            {/* Dashboard dinámico (cambia según el rol) */}
+            <Route path="/dashboard" element={<RoleBasedDashboard />} />
+            
+            {/* Super Admin */}
+            <Route path="/generar-asignar" element={<GenerarYAsignar />} />
+            
+            {/* Coord Georef */}
+            <Route path="/mis-conglomerados" element={<MisConglomerados />} />
+            
+            {/* Coord Brigadas */}
+            <Route path="/brigadas" element={<Brigadas />} />
+            <Route path="/brigadistas" element={<Brigadistas />} />
+            
           </Route>
         </Route>
 
-        {/* Coordinador de Georreferenciación (por crear) */}
-        <Route element={<ProtectedRoute allowedRoles={['coord_georef']} />}>
-          <Route element={<AdminLayout />}>
-            <Route path="/coordgeoref/dashboard" element={<div>Dashboard Coord Georef</div>} />
-          </Route>
-        </Route>
-
-        {/* Coordinador de Brigadas (por crear) */}
-        <Route element={<ProtectedRoute allowedRoles={['coord_brigadas']} />}>
-          <Route element={<AdminLayout />}>
-            <Route path="/coordbrigadas/dashboard" element={<div>Dashboard Coord Brigadas</div>} />
-          </Route>
-        </Route>
-
-        {/* Admin Routes (ANTIGUAS - Mantenerlas temporalmente) */}
-        <Route element={<ProtectedRoute allowedRoles={['super_admin', 'coord_georef', 'coord_brigadas']} />}>
-          <Route element={<AdminLayout />}>
-            <Route path="/admin/dashboard" element={<Dashboard />} />
-            <Route path="/admin/brigadistas" element={<Brigadistas />} />
-            <Route path="/admin/brigadas" element={<Brigadas />} />
-          </Route>
-        </Route>
-
-        {/* Redirecciones */}
+        {/* Redireccionamientos */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 
