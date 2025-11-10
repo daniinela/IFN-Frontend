@@ -21,8 +21,6 @@ import MisConglomerados from './pages/coordgeoref/MisConglomerados';
 import Brigadas from './pages/coordbrigadas/Brigadas';
 import Brigadistas from './pages/coordbrigadas/Brigadistas';
 
-// Shared
-import NotFound from './pages/shared/NotFound';
 
 // Componente selector de dashboard inline
 function DashboardSelector() {
@@ -74,7 +72,6 @@ function App() {
 
         {/* Redireccionamientos */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
