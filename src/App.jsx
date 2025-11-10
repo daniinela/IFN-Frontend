@@ -1,11 +1,23 @@
+// src/App.jsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pagess/login/Login';
-import AdminLayout from './pagess/admin/Layout';  
-import Dashboard from './pagess/admin/Dashboard';      
-import Conglomerados from './pagess/admin/Conglomerados';
-import Brigadas from './pagess/admin/Brigadas';
-import Brigadistas from './pagess/admin/Brigadistas';
 import ProtectedRoute from './components/ProtectedRoute';
+
+// Layouts
+import SuperAdminLayout from './components/SuperAdminLayout';
+import AdminLayout from './components/AdminLayout'; // Para otros roles
+
+// Auth
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+
+// Super Admin
+//import SuperAdminDashboard from './pages/SuperAdmin/SuperAdminDashboard';
+import GenerarYAsignar from './pages/SuperAdmin/GenerarYAsignar';
+
+// Shared (otros módulos existentes - mantenlos como estaban)
+import Dashboard from './pages/shared/Dashboard';
+import Brigadistas from './pages/shared/Brigadistas';
+import Brigadas from './pages/shared/Brigadas';
 
 function App() {
   return (
@@ -13,54 +25,43 @@ function App() {
       <Routes>
         {/* Ruta pública */}
         <Route path="/login" element={<Login />} />
-        
-        {/* Rutas protegidas de Admin */}
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute allowedRoles={['super_admin', 'coord_georef', 'coord_brigadas']} />
-          }
-        >
-          <Route element={<AdminLayout />}>
-            {/* Dashboard - Todos los roles */}
-            <Route path="dashboard" element={<Dashboard />} />
-            
-            {/* Conglomerados - Solo coord_georef y super_admin */}
-            <Route 
-              path="conglomerados" 
-              element={
-                <ProtectedRoute allowedRoles={['super_admin', 'coord_georef']}>
-                  <Conglomerados />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Brigadas - Solo coord_brigadas y super_admin */}
-            <Route 
-              path="brigadas" 
-              element={
-                <ProtectedRoute allowedRoles={['super_admin', 'coord_brigadas']}>
-                  <Brigadas />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Brigadistas - Solo coord_brigadas y super_admin */}
-            <Route 
-              path="brigadistas" 
-              element={
-                <ProtectedRoute allowedRoles={['super_admin', 'coord_brigadas']}>
-                  <Brigadistas />
-                </ProtectedRoute>
-              } 
-            />
+        <Route path="/register/:token" element={<Register />} />
+
+        {/* Super Admin Routes */}
+        <Route element={<ProtectedRoute allowedRoles={['super_admin']} />}>
+          <Route element={<SuperAdminLayout />}>
+            <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
+            <Route path="/superadmin/generar-asignar" element={<GenerarYAsignar />} />
+            <Route path="/superadmin/usuarios" element={<div>Usuarios (por crear)</div>} />
+            <Route path="/superadmin/reportes" element={<div>Reportes (por crear)</div>} />
           </Route>
         </Route>
 
-        {/* Redirect raíz a login */}
+        {/* Coordinador de Georreferenciación (por crear) */}
+        <Route element={<ProtectedRoute allowedRoles={['coord_georef']} />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/coordgeoref/dashboard" element={<div>Dashboard Coord Georef</div>} />
+          </Route>
+        </Route>
+
+        {/* Coordinador de Brigadas (por crear) */}
+        <Route element={<ProtectedRoute allowedRoles={['coord_brigadas']} />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/coordbrigadas/dashboard" element={<div>Dashboard Coord Brigadas</div>} />
+          </Route>
+        </Route>
+
+        {/* Admin Routes (ANTIGUAS - Mantenerlas temporalmente) */}
+        <Route element={<ProtectedRoute allowedRoles={['super_admin', 'coord_georef', 'coord_brigadas']} />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/dashboard" element={<Dashboard />} />
+            <Route path="/admin/brigadistas" element={<Brigadistas />} />
+            <Route path="/admin/brigadas" element={<Brigadas />} />
+          </Route>
+        </Route>
+
+        {/* Redirecciones */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-        
-        {/* 404 */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

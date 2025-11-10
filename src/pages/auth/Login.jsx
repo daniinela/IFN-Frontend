@@ -13,8 +13,32 @@ function Login() {
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
+  
+  // NUEVO: Estado para roles
+  const [userRoles, setUserRoles] = useState([]);
+  const [selectedRole, setSelectedRole] = useState('');
+  const [showRoleSelector, setShowRoleSelector] = useState(false);
 
   useEffect(() => {
+    const redirigirPorRolInterno = (rol) => {
+      switch(rol) {
+        case 'super_admin':
+          navigate('/super-admin/dashboard');
+          break;
+        case 'coord_georef':
+          navigate('/coord-georef/dashboard');
+          break;
+        case 'coord_brigadas':
+          navigate('/coord-brigadas/dashboard');
+          break;
+        case 'brigadista':
+          navigate('/brigadista/dashboard');
+          break;
+        default:
+          setError('Rol no reconocido');
+      }
+    };
+
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -27,7 +51,7 @@ function Login() {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError || !user) {
-          console.warn('⚠️ Sesión inválida, limpiando...');
+          console.warn('Sesión inválida, limpiando...');
           await supabase.auth.signOut();
           localStorage.clear();
           setCheckingSession(false);
@@ -53,14 +77,15 @@ function Login() {
             return;
           }
 
-          const rolPrincipal = roles[0].codigo;
-
-          if (['super_admin', 'coord_georef', 'coord_brigadas'].includes(rolPrincipal)) {
-            navigate('/admin/dashboard');
-          } else if (rolPrincipal === 'brigadista') {
-            navigate('/brigadista/dashboard');
+          // Si tiene un solo rol, redirigir directamente
+          if (roles.length === 1) {
+            const rolPrincipal = roles[0].codigo;
+            localStorage.setItem('active-role', rolPrincipal);
+            redirigirPorRolInterno(rolPrincipal);
           } else {
-            setError('Rol no reconocido');
+            // Si tiene múltiples roles, mostrar selector
+            setUserRoles(roles);
+            setShowRoleSelector(true);
             setCheckingSession(false);
           }
         } catch (err) {
@@ -78,6 +103,25 @@ function Login() {
     checkSession();
   }, [navigate]);
 
+  const redirigirPorRol = (rol) => {
+    switch(rol) {
+      case 'super_admin':
+        navigate('/super-admin/dashboard');
+        break;
+      case 'coord_georef':
+        navigate('/coord-georef/dashboard');
+        break;
+      case 'coord_brigadas':
+        navigate('/coord-brigadas/dashboard');
+        break;
+      case 'brigadista':
+        navigate('/brigadista/dashboard');
+        break;
+      default:
+        setError('Rol no reconocido');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -90,7 +134,7 @@ function Login() {
       });
 
       if (authError) {
-        console.error('❌ Error de autenticación:', authError.message);
+        console.error('Error de autenticación:', authError.message);
         if (authError.message.includes('Invalid login credentials')) {
           setError('Credenciales inválidas. Verifica tu email y contraseña.');
         } else if (authError.message.includes('Email not confirmed')) {
@@ -101,7 +145,7 @@ function Login() {
         return;
       }
 
-      console.log('✅ Login exitoso con Supabase');
+      console.log('Login exitoso con Supabase');
 
       const token = data.session.access_token;
       localStorage.setItem('token', token);
@@ -111,8 +155,8 @@ function Login() {
       });
 
       const { user: userData, roles, privilegios } = response.data;
-      console.log('✅ Datos de usuario:', userData);
-      console.log('✅ Roles:', roles);
+      console.log('Datos de usuario:', userData);
+      console.log('Roles:', roles);
 
       localStorage.setItem('user-data', JSON.stringify(userData));
       localStorage.setItem('user-roles', JSON.stringify(roles));
@@ -125,19 +169,18 @@ function Login() {
         return;
       }
 
-      const rolPrincipal = roles[0].codigo;
-
-      if (['super_admin', 'coord_georef', 'coord_brigadas'].includes(rolPrincipal)) {
-        navigate('/admin/dashboard');
-      } else if (rolPrincipal === 'brigadista') {
-        navigate('/brigadista/dashboard');
+      // NUEVO: Si tiene múltiples roles, mostrar selector
+      if (roles.length > 1) {
+        setUserRoles(roles);
+        setShowRoleSelector(true);
       } else {
-        setError('Rol no autorizado: ' + rolPrincipal);
-        await supabase.auth.signOut();
-        localStorage.clear();
+        // Si tiene un solo rol, redirigir directamente
+        const rolPrincipal = roles[0].codigo;
+        localStorage.setItem('active-role', rolPrincipal);
+        redirigirPorRol(rolPrincipal);
       }
     } catch (err) {
-      console.error('❌ Error inesperado:', err);
+      console.error('Error inesperado:', err);
 
       if (err.response) {
         setError(err.response.data.error || 'Error en el servidor');
@@ -151,6 +194,26 @@ function Login() {
     }
   };
 
+  const handleRoleSelection = () => {
+    if (!selectedRole) {
+      setError('Por favor selecciona un rol');
+      return;
+    }
+
+    localStorage.setItem('active-role', selectedRole);
+    redirigirPorRol(selectedRole);
+  };
+
+  const getRoleName = (codigo) => {
+    const nombres = {
+      'super_admin': 'Super Administrador',
+      'coord_georef': 'Coordinador de Georreferenciación',
+      'coord_brigadas': 'Coordinador de Brigadas',
+      'brigadista': 'Brigadista'
+    };
+    return nombres[codigo] || codigo;
+  };
+
   if (checkingSession) {
     return (
       <div className="login-loading-container">
@@ -162,6 +225,94 @@ function Login() {
     );
   }
 
+  // NUEVO: Pantalla de selección de rol
+  if (showRoleSelector) {
+    return (
+      <section className="login-section">
+        <div className="login-container-fluid">
+          <div className="login-row">
+            <div className="login-col-left">
+              <div className="login-logo-container">
+                <img src="/img/ideam.png" alt="Logo IDEAM" className="login-logo" />
+              </div>
+
+              <div className="login-form-wrapper">
+                <div className="role-selector-container">
+                  <h3 className="login-title">Selecciona tu Rol</h3>
+                  <p className="role-selector-subtitle">
+                    Tu cuenta tiene múltiples roles asignados. Selecciona el rol con el que deseas ingresar.
+                  </p>
+
+                  {error && (
+                    <div className="login-error-message">
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM11 15H9V13H11V15ZM11 11H9V5H11V11Z" fill="currentColor"/>
+                      </svg>
+                      <span>{error}</span>
+                    </div>
+                  )}
+
+                  <div className="login-form-group">
+                    <label htmlFor="role" className="login-label">Rol de acceso</label>
+                    <select 
+                      id="role"
+                      className="login-select"
+                      value={selectedRole}
+                      onChange={(e) => setSelectedRole(e.target.value)}
+                      required
+                    >
+                      <option value="">-- Selecciona un rol --</option>
+                      {userRoles.map(rol => (
+                        <option key={rol.codigo} value={rol.codigo}>
+                          {getRoleName(rol.codigo)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="login-button-container">
+                    <button 
+                      type="button"
+                      onClick={handleRoleSelection}
+                      className="login-button"
+                    >
+                      Continuar
+                    </button>
+                  </div>
+
+                  <div className="role-selector-footer">
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setShowRoleSelector(false);
+                        setUserRoles([]);
+                        setSelectedRole('');
+                        supabase.auth.signOut();
+                        localStorage.clear();
+                      }}
+                      className="login-back-btn"
+                    >
+                      Volver al inicio de sesión
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="login-col-right">
+              <img 
+                src="/img/pexels-oigoralvez-34042840.jpg" 
+                alt="Login image" 
+                className="login-image"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Pantalla de login normal
   return (
     <section className="login-section">
       <div className="login-container-fluid">
@@ -242,7 +393,7 @@ function Login() {
                         Iniciando sesión...
                       </>
                     ) : (
-                      'Login'
+                      'Iniciar Sesión'
                     )}
                   </button>
                 </div>
