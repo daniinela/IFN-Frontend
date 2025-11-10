@@ -1,11 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/DashboardLayout';
-import RoleBasedDashboard from './pages/shared/RoleBasedDashboard';
 
 // Auth
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+
+// Dashboards por rol
+import SuperAdminDashboard from './pages/SuperAdmin/SuperAdminDashboard'
+import CoordGeorefDashboard from './pages/coordgeoref/CoordGeorefDashboard';
+import CoordBrigadasDashboard from './pages/coordbrigadas/CoordBrigadasDashboard';
 
 // Super Admin
 import GenerarYAsignar from './pages/superadmin/GenerarYAsignar';
@@ -20,6 +24,26 @@ import Brigadistas from './pages/coordbrigadas/Brigadistas';
 // Shared
 import NotFound from './pages/shared/NotFound';
 
+// Componente selector de dashboard inline
+function DashboardSelector() {
+  const activeRole = localStorage.getItem('active-role');
+  
+  if (activeRole === 'super_admin') {
+    return <SuperAdminDashboard />;
+  }
+  
+  if (activeRole === 'coord_georef') {
+    return <CoordGeorefDashboard />;
+  }
+  
+  if (activeRole === 'coord_brigadas') {
+    return <CoordBrigadasDashboard />;
+  }
+  
+  // Si no hay rol válido, redirigir al login
+  return <Navigate to="/login" replace />;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -32,8 +56,8 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={['super_admin', 'coord_georef', 'coord_brigadas', 'brigadista']} />}>
           <Route element={<DashboardLayout />}>
             
-            {/* Dashboard dinámico (cambia según el rol) */}
-            <Route path="/dashboard" element={<RoleBasedDashboard />} />
+            {/* Dashboard dinámico según rol */}
+            <Route path="/dashboard" element={<DashboardSelector />} />
             
             {/* Super Admin */}
             <Route path="/generar-asignar" element={<GenerarYAsignar />} />
