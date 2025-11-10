@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+// src/pages/coordgeoref/CoordGeorefDashboard.jsx
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
 import axios from '../../api/axiosConfig';
@@ -19,10 +20,6 @@ function CoordGeorefDashboard() {
     revisionesHoy: 0
   });
 
-  useEffect(() => {
-    cargarEstadisticas();
-  }, []);
-
   // Función auxiliar para calcular promedio de días de revisión
   const calcularPromedio = (conglomerados) => {
     const revisados = conglomerados.filter(c => c.updated_at && c.fecha_asignacion);
@@ -37,7 +34,7 @@ function CoordGeorefDashboard() {
     return Math.round(tiempos.reduce((a, b) => a + b, 0) / tiempos.length);
   };
 
-  const cargarEstadisticas = async () => {
+  const cargarEstadisticas = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -95,7 +92,11 @@ function CoordGeorefDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    cargarEstadisticas();
+  }, [cargarEstadisticas]);
 
   const cards = [
     {
