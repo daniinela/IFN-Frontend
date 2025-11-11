@@ -21,27 +21,6 @@ import MisConglomerados from './pages/coordgeoref/MisConglomerados';
 import Brigadas from './pages/coordbrigadas/Brigadas';
 import Brigadistas from './pages/coordbrigadas/Brigadistas';
 
-
-// Componente selector de dashboard inline
-function DashboardSelector() {
-  const activeRole = localStorage.getItem('active-role');
-  
-  if (activeRole === 'super_admin') {
-    return <SuperAdminDashboard />;
-  }
-  
-  if (activeRole === 'coord_georef') {
-    return <CoordGeorefDashboard />;
-  }
-  
-  if (activeRole === 'coord_brigadas') {
-    return <CoordBrigadasDashboard />;
-  }
-  
-  // Si no hay rol válido, redirigir al login
-  return <Navigate to="/login" replace />;
-}
-
 function App() {
   return (
     <BrowserRouter>
@@ -54,16 +33,18 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={['super_admin', 'coord_georef', 'coord_brigadas', 'brigadista']} />}>
           <Route element={<DashboardLayout />}>
             
-            {/* Dashboard dinámico según rol */}
-            <Route path="/dashboard" element={<DashboardSelector />} />
+            {/* DASHBOARDS SEPARADOS POR ROL */}
+            <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
+            <Route path="/coord-georef/dashboard" element={<CoordGeorefDashboard />} />
+            <Route path="/coord-brigadas/dashboard" element={<CoordBrigadasDashboard />} />
             
-            {/* Super Admin */}
+            {/* Super Admin - Rutas adicionales */}
             <Route path="/generar-asignar" element={<GenerarYAsignar />} />
             
-            {/* Coord Georef */}
+            {/* Coord Georef - Rutas adicionales */}
             <Route path="/mis-conglomerados" element={<MisConglomerados />} />
             
-            {/* Coord Brigadas */}
+            {/* Coord Brigadas - Rutas adicionales */}
             <Route path="/brigadas" element={<Brigadas />} />
             <Route path="/brigadistas" element={<Brigadistas />} />
             
@@ -72,6 +53,7 @@ function App() {
 
         {/* Redireccionamientos */}
         <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

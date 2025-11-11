@@ -16,22 +16,24 @@ function Brigadistas() {
   const [busqueda, setBusqueda] = useState('');
   
   // Modales
-  const [showCrearModal, setShowCrearModal] = useState(false);
+  const [showInvitarModal, setShowInvitarModal] = useState(false);
   const [showEditarModal, setShowEditarModal] = useState(false);
   const [showEliminarModal, setShowEliminarModal] = useState(false);
   const [brigadistaSeleccionado, setBrigadistaSeleccionado] = useState(null);
   
-  // Formulario
-  const [formData, setFormData] = useState({
+  // Formulario de invitación (solo email y rol esperado)
+  const [formInvitacion, setFormInvitacion] = useState({
     email: '',
-    cedula: '',
+    rol_esperado: 'tecnico',
+    municipio_id: ''
+  });
+
+  // Formulario de edición
+  const [formEdicion, setFormEdicion] = useState({
     nombre_completo: '',
     telefono: '',
     rol: 'tecnico',
-    municipio_id: '',
-    titulos: [],
-    experiencia_laboral: [],
-    disponibilidad: []
+    municipio_id: ''
   });
 
   const cargarMunicipios = useCallback(async () => {
@@ -74,52 +76,60 @@ function Brigadistas() {
     cargarMunicipios();
   }, [cargarBrigadistas, cargarMunicipios]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const resetForm = () => {
-    setFormData({
+  const resetFormInvitacion = () => {
+    setFormInvitacion({
       email: '',
-      cedula: '',
-      nombre_completo: '',
-      telefono: '',
-      rol: 'tecnico',
-      municipio_id: '',
-      titulos: [],
-      experiencia_laboral: [],
-      disponibilidad: []
+      rol_esperado: 'tecnico',
+      municipio_id: ''
     });
   };
 
-  const abrirModalCrear = () => {
-    resetForm();
-    setShowCrearModal(true);
+  const abrirModalInvitar = () => {
+    resetFormInvitacion();
+    setShowInvitarModal(true);
   };
 
   const abrirModalEditar = (brigadista) => {
     setBrigadistaSeleccionado(brigadista);
-    setFormData({
-      email: brigadista.email || '',
-      cedula: brigadista.cedula || '',
+    setFormEdicion({
       nombre_completo: brigadista.nombre_completo || '',
       telefono: brigadista.telefono || '',
       rol: brigadista.rol || 'tecnico',
-      municipio_id: brigadista.municipio_id || '',
-      titulos: brigadista.titulos || [],
-      experiencia_laboral: brigadista.experiencia_laboral || [],
-      disponibilidad: brigadista.disponibilidad || []
+      municipio_id: brigadista.municipio_id || ''
     });
     setShowEditarModal(true);
   };
 
-  const crearBrigadista = async () => {
-    if (!formData.email || !formData.cedula || !formData.nombre_completo) {
-      setError('Email, cédula y nombre completo son requeridos');
+  // ✅ NUEVO: Validar email único
+  const validarEmailUnico = async (email) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/usuarios/email/${email}`);
+      if (response.data) {
+        setError('⚠️ Este email ya está registrado en el sistema');
+        return false;
+      }
+      return true;
+    } catch (error) {
+      if (error.response?.status === 404) {
+        // Email no existe, está disponible
+        return true;
+      }
+      console.error('Error validando email:', error);
+      return false;
+    }
+  };
+
+  // ✅ CORREGIDO: Enviar invitación por email (usando Supabase)
+  const invitarBrigadista = async () => {
+    if (!formInvitacion.email) {
+      setError('El email es requerido');
+      return;
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formInvitacion.email)) {
+      setError('Formato de email inválido');
       return;
     }
 
@@ -127,61 +137,61 @@ function Brigadistas() {
       setLoading(true);
       setError('');
 
-      const { data: { session } } = await supabase.auth.getSession();
+      // ✅ Validar que el email no exista
+      const esUnico = await validarEmailUnico(formInvitacion.email);
+      if (!esUnico) {
+        setLoading(false);
+        return;
+      }
 
-      // 1. Crear usuario en el sistema
-      const usuarioRes = await axios.post(
-        'http://localhost:3000/api/usuarios',
+      console.log('📧 Enviando invitación a:', formInvitacion.email);
+
+      // ✅ INVITAR CON SUPABASE
+      const { data, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
+        formInvitacion.email,
         {
-          email: formData.email,
-          cedula: formData.cedula,
-          nombre_completo: formData.nombre_completo,
-          telefono: formData.telefono
-        },
-        { headers: { Authorization: `Bearer ${session.access_token}` } }
+          data: {
+            rol_esperado: formInvitacion.rol_esperado,
+            municipio_id: formInvitacion.municipio_id || null,
+            invitado_como: 'brigadista'
+          },
+          redirectTo: `${window.location.origin}/register`
+        }
       );
 
-      const userId = usuarioRes.data.id;
+      if (inviteError) {
+        console.error('❌ Error Supabase:', inviteError);
+        throw new Error(inviteError.message);
+      }
 
-      // 2. Asignar rol de brigadista
-      await axios.post(
-        'http://localhost:3000/api/cuentas-rol',
-        {
-          usuario_id: userId,
-          tipo_rol_id: 'brigadista_rol_id', // Ajustar según tu BD
-          municipio_id: formData.municipio_id
-        },
-        { headers: { Authorization: `Bearer ${session.access_token}` } }
-      );
+      console.log('✅ Invitación enviada:', data);
 
-      // 3. Crear perfil de brigadista
-      await axios.post(
-        'http://localhost:3002/api/brigadistas',
-        {
-          user_id: userId,
-          municipio_id: formData.municipio_id,
-          rol: formData.rol,
-          titulos: formData.titulos,
-          experiencia_laboral: formData.experiencia_laboral,
-          disponibilidad: formData.disponibilidad
-        },
-        { headers: { Authorization: `Bearer ${session.access_token}` } }
-      );
+      setSuccess(`✅ Invitación enviada a ${formInvitacion.email}`);
+      setShowInvitarModal(false);
+      resetFormInvitacion();
+      
+      // Opcional: Guardar registro de invitación pendiente en BD
+      try {
+        await axios.post('http://localhost:3002/api/brigadistas/invitacion', {
+          email: formInvitacion.email,
+          rol_esperado: formInvitacion.rol_esperado,
+          municipio_id: formInvitacion.municipio_id,
+          estado: 'pendiente'
+        });
+      } catch (err) {
+        console.warn('No se pudo registrar la invitación en BD:', err);
+      }
 
-      setSuccess('Brigadista creado exitosamente');
-      setShowCrearModal(false);
-      resetForm();
-      cargarBrigadistas();
     } catch (error) {
-      console.error('Error creando brigadista:', error);
-      setError(error.response?.data?.error || 'Error al crear brigadista');
+      console.error('Error enviando invitación:', error);
+      setError(error.message || 'Error al enviar invitación');
     } finally {
       setLoading(false);
     }
   };
 
   const actualizarBrigadista = async () => {
-    if (!formData.nombre_completo) {
+    if (!formEdicion.nombre_completo) {
       setError('El nombre completo es requerido');
       return;
     }
@@ -194,22 +204,13 @@ function Brigadistas() {
 
       await axios.put(
         `http://localhost:3002/api/brigadistas/${brigadistaSeleccionado.id}`,
-        {
-          nombre_completo: formData.nombre_completo,
-          telefono: formData.telefono,
-          rol: formData.rol,
-          municipio_id: formData.municipio_id,
-          titulos: formData.titulos,
-          experiencia_laboral: formData.experiencia_laboral,
-          disponibilidad: formData.disponibilidad
-        },
+        formEdicion,
         { headers: { Authorization: `Bearer ${session.access_token}` } }
       );
 
-      setSuccess('Brigadista actualizado exitosamente');
+      setSuccess('✅ Brigadista actualizado exitosamente');
       setShowEditarModal(false);
       setBrigadistaSeleccionado(null);
-      resetForm();
       cargarBrigadistas();
     } catch (error) {
       console.error('Error actualizando brigadista:', error);
@@ -231,7 +232,7 @@ function Brigadistas() {
         { headers: { Authorization: `Bearer ${session.access_token}` } }
       );
 
-      setSuccess('Brigadista eliminado exitosamente');
+      setSuccess('✅ Brigadista eliminado exitosamente');
       setShowEliminarModal(false);
       setBrigadistaSeleccionado(null);
       cargarBrigadistas();
@@ -270,14 +271,16 @@ function Brigadistas() {
       <div className="page-header">
         <div>
           <h2 className="page-title">Gestión de Brigadistas</h2>
-          <p className="page-subtitle">Personal de trabajo de campo</p>
+          <p className="page-subtitle">Invitar y administrar personal de trabajo de campo</p>
         </div>
-        <button className="btn-create" onClick={abrirModalCrear}>
+        <button className="btn-create" onClick={abrirModalInvitar}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="8.5" cy="7" r="4"/>
+            <line x1="20" y1="8" x2="20" y2="14"/>
+            <line x1="23" y1="11" x2="17" y2="11"/>
           </svg>
-          Crear Brigadista
+          Invitar Brigadista
         </button>
       </div>
 
@@ -362,7 +365,7 @@ function Brigadistas() {
             <circle cx="12" cy="7" r="4" />
           </svg>
           <h3>No hay brigadistas</h3>
-          <p>No se encontraron brigadistas con los filtros aplicados</p>
+          <p>Invita al primer brigadista usando el botón "Invitar Brigadista"</p>
         </div>
       ) : (
         <div className="brigadistas-table-container">
@@ -385,7 +388,7 @@ function Brigadistas() {
                 
                 return (
                   <tr key={brigadista.id}>
-                    <td className="td-nombre">{brigadista.nombre_completo || 'Sin nombre'}</td>
+                    <td className="td-nombre">{brigadista.nombre_completo || 'Pendiente'}</td>
                     <td className="td-email">{brigadista.email || 'N/A'}</td>
                     <td className="td-cedula">{brigadista.cedula || 'N/A'}</td>
                     <td>
@@ -436,71 +439,46 @@ function Brigadistas() {
         </div>
       )}
 
-      {/* Modal Crear */}
-      {showCrearModal && (
-        <div className="modal-overlay" onClick={() => setShowCrearModal(false)}>
+      {/* ✅ NUEVO: Modal Invitar (solo email y rol) */}
+      {showInvitarModal && (
+        <div className="modal-overlay" onClick={() => setShowInvitarModal(false)}>
           <div className="modal-content modal-form" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 className="modal-title">Crear Nuevo Brigadista</h3>
-              <button className="modal-close" onClick={() => setShowCrearModal(false)}>×</button>
+              <h3 className="modal-title">Invitar Brigadista</h3>
+              <button className="modal-close" onClick={() => setShowInvitarModal(false)}>×</button>
             </div>
 
             <div className="modal-body">
+              <div className="alert alert-info" style={{ marginBottom: '20px' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M12 16v-4M12 8h.01" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+                <div>
+                  <strong>ℹ️ Proceso de invitación</strong>
+                  <p>Se enviará un email de invitación. El brigadista completará sus datos al registrarse.</p>
+                </div>
+              </div>
+
               <div className="form-grid">
-                <div className="form-group">
-                  <label className="form-label">Email: *</label>
+                <div className="form-group full-width">
+                  <label className="form-label">Email del brigadista: *</label>
                   <input
                     type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
+                    value={formInvitacion.email}
+                    onChange={(e) => setFormInvitacion({ ...formInvitacion, email: e.target.value })}
                     className="form-input"
                     placeholder="ejemplo@correo.com"
+                    required
                   />
+                  <small className="form-help">Se enviará la invitación a este correo</small>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Cédula: *</label>
-                  <input
-                    type="text"
-                    name="cedula"
-                    value={formData.cedula}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    placeholder="1234567890"
-                  />
-                </div>
-
-                <div className="form-group full-width">
-                  <label className="form-label">Nombre Completo: *</label>
-                  <input
-                    type="text"
-                    name="nombre_completo"
-                    value={formData.nombre_completo}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    placeholder="Juan Pérez García"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Teléfono:</label>
-                  <input
-                    type="tel"
-                    name="telefono"
-                    value={formData.telefono}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    placeholder="3001234567"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Rol:</label>
+                  <label className="form-label">Rol esperado:</label>
                   <select
-                    name="rol"
-                    value={formData.rol}
-                    onChange={handleInputChange}
+                    value={formInvitacion.rol_esperado}
+                    onChange={(e) => setFormInvitacion({ ...formInvitacion, rol_esperado: e.target.value })}
                     className="form-select"
                   >
                     <option value="tecnico">Técnico</option>
@@ -508,17 +486,17 @@ function Brigadistas() {
                     <option value="jefe">Jefe</option>
                     <option value="coinvestigador">Coinvestigador</option>
                   </select>
+                  <small className="form-help">Rol sugerido (puede cambiarse al registrarse)</small>
                 </div>
 
-                <div className="form-group full-width">
-                  <label className="form-label">Municipio:</label>
+                <div className="form-group">
+                  <label className="form-label">Municipio (opcional):</label>
                   <select
-                    name="municipio_id"
-                    value={formData.municipio_id}
-                    onChange={handleInputChange}
+                    value={formInvitacion.municipio_id}
+                    onChange={(e) => setFormInvitacion({ ...formInvitacion, municipio_id: e.target.value })}
                     className="form-select"
                   >
-                    <option value="">-- Selecciona un municipio --</option>
+                    <option value="">-- Sin asignar --</option>
                     {municipios.map(m => (
                       <option key={m.id} value={m.id}>{m.nombre}</option>
                     ))}
@@ -528,22 +506,22 @@ function Brigadistas() {
             </div>
 
             <div className="modal-footer">
-              <button className="btn-modal btn-cancel" onClick={() => setShowCrearModal(false)}>
+              <button className="btn-modal btn-cancel" onClick={() => setShowInvitarModal(false)}>
                 Cancelar
               </button>
               <button 
                 className="btn-modal btn-confirm"
-                onClick={crearBrigadista}
-                disabled={loading}
+                onClick={invitarBrigadista}
+                disabled={loading || !formInvitacion.email}
               >
-                {loading ? 'Creando...' : 'Crear Brigadista'}
+                {loading ? 'Enviando invitación...' : '📧 Enviar Invitación'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal Editar */}
+      {/* Modal Editar (sin cambios) */}
       {showEditarModal && brigadistaSeleccionado && (
         <div className="modal-overlay" onClick={() => setShowEditarModal(false)}>
           <div className="modal-content modal-form" onClick={e => e.stopPropagation()}>
@@ -558,9 +536,8 @@ function Brigadistas() {
                   <label className="form-label">Nombre Completo: *</label>
                   <input
                     type="text"
-                    name="nombre_completo"
-                    value={formData.nombre_completo}
-                    onChange={handleInputChange}
+                    value={formEdicion.nombre_completo}
+                    onChange={(e) => setFormEdicion({ ...formEdicion, nombre_completo: e.target.value })}
                     className="form-input"
                   />
                 </div>
@@ -569,9 +546,8 @@ function Brigadistas() {
                   <label className="form-label">Teléfono:</label>
                   <input
                     type="tel"
-                    name="telefono"
-                    value={formData.telefono}
-                    onChange={handleInputChange}
+                    value={formEdicion.telefono}
+                    onChange={(e) => setFormEdicion({ ...formEdicion, telefono: e.target.value })}
                     className="form-input"
                   />
                 </div>
@@ -579,9 +555,8 @@ function Brigadistas() {
                 <div className="form-group">
                   <label className="form-label">Rol:</label>
                   <select
-                    name="rol"
-                    value={formData.rol}
-                    onChange={handleInputChange}
+                    value={formEdicion.rol}
+                    onChange={(e) => setFormEdicion({ ...formEdicion, rol: e.target.value })}
                     className="form-select"
                   >
                     <option value="tecnico">Técnico</option>
@@ -594,9 +569,8 @@ function Brigadistas() {
                 <div className="form-group full-width">
                   <label className="form-label">Municipio:</label>
                   <select
-                    name="municipio_id"
-                    value={formData.municipio_id}
-                    onChange={handleInputChange}
+                    value={formEdicion.municipio_id}
+                    onChange={(e) => setFormEdicion({ ...formEdicion, municipio_id: e.target.value })}
                     className="form-select"
                   >
                     <option value="">-- Selecciona un municipio --</option>
@@ -624,7 +598,7 @@ function Brigadistas() {
         </div>
       )}
 
-      {/* Modal Eliminar */}
+      {/* Modal Eliminar (sin cambios) */}
       {showEliminarModal && brigadistaSeleccionado && (
         <div className="modal-overlay" onClick={() => setShowEliminarModal(false)}>
           <div className="modal-content modal-confirm" onClick={e => e.stopPropagation()}>

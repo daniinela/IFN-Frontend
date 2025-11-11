@@ -3,14 +3,15 @@ import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-// Obtiene el directorio actual del archivo
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Configura las variables de entorno
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, __dirname, ''); // Carga las variables del .env desde el directorio actual
+  const env = loadEnv(mode, __dirname, '');
   return {
     plugins: [react()],
+    resolve: {
+      extensions: ['.js', '.jsx', '.ts', '.tsx']  // ← AGREGA ESTA LÍNEA
+    },
     define: {
       'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
       'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
@@ -18,11 +19,11 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_OPENWEATHER_API_KEY': JSON.stringify(env.VITE_OPENWEATHER_API_KEY),
     },
     server: {
-      port: 5173, // Puerto por defecto de Vite
-      open: true, // Abre el navegador automáticamente
+      port: 5173,
+      open: true,
     },
     build: {
-      outDir: 'dist', // Carpeta de salida para el build
+      outDir: 'dist',
     },
   };
 });
