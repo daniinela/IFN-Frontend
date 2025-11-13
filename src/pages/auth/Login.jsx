@@ -67,7 +67,7 @@ function Login() {
 
           localStorage.setItem('user-data', JSON.stringify(userData));
           localStorage.setItem('user-roles', JSON.stringify(roles));
-          localStorage.setItem('user-privilegios', JSON.stringify(privilegios));
+          localStorage.setItem('user-privileges', JSON.stringify(privilegios));
 
           if (roles.length === 0) {
             setError('Usuario sin roles asignados');
@@ -160,7 +160,7 @@ function Login() {
 
       localStorage.setItem('user-data', JSON.stringify(userData));
       localStorage.setItem('user-roles', JSON.stringify(roles));
-      localStorage.setItem('user-privilegios', JSON.stringify(privilegios));
+      localStorage.setItem('user-privileges', JSON.stringify(privilegios));
 
       if (roles.length === 0) {
         setError('Usuario sin roles asignados. Contacta al administrador.');

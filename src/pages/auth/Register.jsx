@@ -4,55 +4,115 @@ import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import './Register.css';
 
+const API_UBICACIONES = import.meta.env.VITE_API_UBICACIONES || 'http://localhost:3004';
+
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
 function Register() {
-
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [rolSecundario, setRolSecundario] = useState('');
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
     nombre_completo: '',
     telefono: '',
-    municipio: ''
+    cedula: ''
   });
+
+  // Estados para ubicación
+  const [regiones, setRegiones] = useState([]);
+  const [departamentos, setDepartamentos] = useState([]);
+  const [municipios, setMunicipios] = useState([]);
+  const [regionSeleccionada, setRegionSeleccionada] = useState('');
+  const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState('');
+  const [municipioSeleccionado, setMunicipioSeleccionado] = useState('');
 
   const [titulos, setTitulos] = useState([{ titulo: '', institucion: '', anio: '' }]);
   const [experiencias, setExperiencias] = useState([{ cargo: '', empresa: '', fecha_inicio: '', fecha_fin: '', descripcion: '' }]);
 
-useEffect(() => {
-  const manejarInvitacion = async () => {
-    try {
-      // Supabase automáticamente autentica al usuario cuando hace click en el link
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.log('❌ Sin sesión');
-        setError('Debes acceder mediante el link de invitación');
-        return;
+  useEffect(() => {
+    const manejarInvitacion = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.log('❌ Sin sesión');
+          setError('Debes acceder mediante el link de invitación');
+          return;
+        }
+
+        console.log('✅ Sesión encontrada:', session.user.email);
+        
+        setFormData(prev => ({
+          ...prev,
+          email: session.user.email
+        }));
+      } catch (err) {
+        console.error('Error:', err);
+        setError('Error verificando invitación');
       }
+    };
 
-      console.log('✅ Sesión encontrada:', session.user.email);
-      
-      setFormData(prev => ({
-        ...prev,
-        email: session.user.email
-      }));
-    } catch (err) {
-      console.error('Error:', err);
-      setError('Error verificando invitación');
+    manejarInvitacion();
+  }, []);
+
+  useEffect(() => {
+    const cargarRegiones = async () => {
+      try {
+        const response = await axios.get(`${API_UBICACIONES}/api/ubicaciones/regiones`);
+        setRegiones(response.data || []);
+      } catch (error) {
+        console.error('Error cargando regiones:', error);
+      }
+    };
+    cargarRegiones();
+  }, []);
+
+  useEffect(() => {
+    if (!regionSeleccionada) {
+      setDepartamentos([]);
+      setMunicipios([]);
+      return;
     }
-  };
 
-  manejarInvitacion();
-}, []);
+    const cargarDepartamentos = async () => {
+      try {
+        const response = await axios.get(`${API_UBICACIONES}/api/ubicaciones/departamentos/region/${regionSeleccionada}`);
+        setDepartamentos(response.data || []);
+        setMunicipios([]);
+        setDepartamentoSeleccionado('');
+        setMunicipioSeleccionado('');
+      } catch (error) {
+        console.error('Error cargando departamentos:', error);
+      }
+    };
+    cargarDepartamentos();
+  }, [regionSeleccionada]);
+
+  useEffect(() => {
+    if (!departamentoSeleccionado) {
+      setMunicipios([]);
+      return;
+    }
+
+    const cargarMunicipios = async () => {
+      try {
+        const response = await axios.get(`${API_UBICACIONES}/api/ubicaciones/municipios/departamento/${departamentoSeleccionado}`);
+        setMunicipios(response.data || []);
+        setMunicipioSeleccionado('');
+      } catch (error) {
+        console.error('Error cargando municipios:', error);
+      }
+    };
+    cargarMunicipios();
+  }, [departamentoSeleccionado]);
+
   const validarFechas = () => {
     for (let exp of experiencias) {
       if (exp.fecha_inicio && exp.fecha_fin && exp.fecha_inicio > exp.fecha_fin) {
@@ -89,7 +149,6 @@ useEffect(() => {
     setError('');
 
     try {
-      // ✅ VALIDACIÓN BÁSICA
       if (formData.password !== formData.confirmPassword) {
         throw new Error('Las contraseñas no coinciden');
       }
@@ -103,17 +162,20 @@ useEffect(() => {
         return;
       }
 
-      if (!rolSecundario) {
-        throw new Error('Debes seleccionar un rol');
+      if (!municipioSeleccionado) {
+        throw new Error('Debes seleccionar tu municipio de residencia');
       }
 
-      if (rolSecundario !== 'coinvestigador') {
-        if (titulos.some(t => !t.titulo || !t.institucion || !t.anio)) {
-          throw new Error('Por favor completa todos los títulos');
-        }
-        if (experiencias.some(e => !e.cargo || !e.empresa || !e.descripcion)) {
-          throw new Error('Por favor completa toda la experiencia laboral');
-        }
+      if (!formData.cedula || formData.cedula.length < 6) {
+        throw new Error('Cédula inválida');
+      }
+
+      if (titulos.some(t => !t.titulo || !t.institucion || !t.anio)) {
+        throw new Error('Por favor completa todos los títulos');
+      }
+
+      if (experiencias.some(e => !e.cargo || !e.empresa || !e.descripcion)) {
+        throw new Error('Por favor completa toda la experiencia laboral');
       }
 
       const titulosCompletos = titulos.filter(t => t.titulo && t.institucion && t.anio);
@@ -121,7 +183,6 @@ useEffect(() => {
 
       console.log('📧 COMPLETANDO INVITACIÓN...');
       
-      // ===== PASO 1: ESTABLECER CONTRASEÑA =====
       const { data, error } = await supabase.auth.updateUser({
         password: formData.password,
         data: {
@@ -142,14 +203,13 @@ useEffect(() => {
       const userId = data.user.id;
       console.log('✅ Contraseña establecida. User ID:', userId);
 
-      // ===== PASO 2: GUARDAR EN BD =====
       console.log('💾 Guardando en tabla usuarios...');
       try {
         await axios.post('http://localhost:3001/api/usuarios', {
           id: userId,
           email: formData.email,
+          cedula: formData.cedula,
           nombre_completo: formData.nombre_completo,
-          rol: 'brigadista',
           telefono: formData.telefono || null
         });
         console.log('✅ Usuario guardado en BD');
@@ -158,27 +218,21 @@ useEffect(() => {
         throw new Error('Error guardando usuario: ' + (err.response?.data?.error || err.message));
       }
 
-      // ===== PASO 3: CREAR BRIGADISTA =====
       console.log('💾 Creando brigadista...');
       try {
         await axios.post('http://localhost:3002/api/brigadistas/registro/nuevo', {
           user_id: userId,
-          municipio: formData.municipio || 'Sin especificar',
+          municipio_id: municipioSeleccionado,
           titulos: titulosCompletos,
-          experiencia_laboral: experienciasCompletas,
-          rol: rolSecundario
+          experiencia_laboral: experienciasCompletas
         });
         console.log('✅ Brigadista creado');
       } catch (err) {
         console.error('❌ Error brigadista:', err.response?.data || err.message);
-        
-        // Limpiar usuario si falla
         await axios.delete(`http://localhost:3001/api/usuarios/${userId}`).catch(console.error);
-        
         throw new Error('Error creando brigadista: ' + (err.response?.data?.error || err.message));
       }
 
-      // ===== PASO 4: CONFIRMAR EMAIL =====
       console.log('✉️ Confirmando email...');
       await axios.post(`http://localhost:3001/api/usuarios/confirmar-email/${userId}`).catch(console.error);
 
@@ -194,7 +248,6 @@ useEffect(() => {
     }
   };
 
-  // Si hay error de invitación, mostrar solo el mensaje
   if (error && error.includes('solo para usuarios invitados')) {
     return (
       <div className="forest-bg">
@@ -247,7 +300,6 @@ useEffect(() => {
               </div>
             )}
             <form onSubmit={handleSubmit}>
-              {/* Datos Personales */}
               <div className="form-section">
                 <h3 className="section-title">Datos Personales</h3>
                 <div className="form-grid-2">
@@ -255,10 +307,9 @@ useEffect(() => {
                     <label>Email</label>
                     <input 
                       type="email" 
-                      className="form-input" 
+                      className="form-input form-input-readonly" 
                       value={formData.email}
                       readOnly
-                      style={{ backgroundColor: '#f5f5f5' }}
                     />
                   </div>
                   <div className="form-group">
@@ -280,7 +331,7 @@ useEffect(() => {
                 </div>
                 <div className="form-grid-2">
                   <div className="form-group">
-                    <label>Contraseña</label>
+                    <label>Contraseña *</label>
                     <input 
                       type="password" 
                       className="form-input"
@@ -292,7 +343,7 @@ useEffect(() => {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Confirmar Contraseña</label>
+                    <label>Confirmar Contraseña *</label>
                     <input 
                       type="password" 
                       className="form-input"
@@ -304,7 +355,7 @@ useEffect(() => {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label>Nombre Completo</label>
+                  <label>Nombre Completo *</label>
                   <input 
                     type="text" 
                     className="form-input"
@@ -315,37 +366,82 @@ useEffect(() => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Municipio</label>
+                  <label>Cédula *</label>
                   <input 
                     type="text" 
                     className="form-input"
-                    placeholder="Municipio de residencia"
-                    value={formData.municipio}
-                    onChange={(e) => setFormData({ ...formData, municipio: e.target.value })}
+                    placeholder="Número de cédula"
+                    value={formData.cedula}
+                    onChange={(e) => {
+                      const soloNumeros = e.target.value.replace(/[^0-9]/g, '');
+                      if (soloNumeros.length <= 12) {
+                        setFormData({ ...formData, cedula: soloNumeros });
+                      }
+                    }}
                     required
+                    minLength="6"
+                    maxLength="12"
                   />
                 </div>
+
                 <div className="form-group">
-                  <label>Rol dentro de brigadista</label>
+                  <label>Región *</label>
                   <select 
                     className="form-select"
-                    value={rolSecundario}
-                    onChange={(e) => setRolSecundario(e.target.value)}
+                    value={regionSeleccionada}
+                    onChange={(e) => setRegionSeleccionada(e.target.value)}
                     required
                   >
-                    <option value="">Selecciona tu rol</option>
-                    <option value="jefe">👨‍💼 Jefe de Brigada</option>
-                    <option value="botanico">🌿 Botánico</option>
-                    <option value="tecnico">🔧 Técnico Auxiliar</option>
-                    <option value="coinvestigador">🤝 Coinvestigador</option>
+                    <option value="">Selecciona tu región</option>
+                    {regiones.map(region => (
+                      <option key={region.id} value={region.id}>
+                        {region.nombre}
+                      </option>
+                    ))}
                   </select>
+                </div>
+
+                <div className="form-grid-2">
+                  <div className="form-group">
+                    <label>Departamento *</label>
+                    <select 
+                      className="form-select form-select-disabled"
+                      value={departamentoSeleccionado}
+                      onChange={(e) => setDepartamentoSeleccionado(e.target.value)}
+                      disabled={!regionSeleccionada}
+                      required
+                    >
+                      <option value="">Selecciona departamento</option>
+                      {departamentos.map(depto => (
+                        <option key={depto.id} value={depto.id}>
+                          {depto.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Municipio *</label>
+                    <select 
+                      className="form-select form-select-disabled"
+                      value={municipioSeleccionado}
+                      onChange={(e) => setMunicipioSeleccionado(e.target.value)}
+                      disabled={!departamentoSeleccionado}
+                      required
+                    >
+                      <option value="">Selecciona municipio</option>
+                      {municipios.map(mun => (
+                        <option key={mun.id} value={mun.id}>
+                          {mun.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              {/* Títulos */}
               <div className="form-section">
                 <h3 className="section-title">Títulos Académicos</h3>
-
                 {titulos.map((titulo, index) => (
                   <div key={index} className="subsection-card">
                     <div className="subsection-header">
@@ -367,7 +463,7 @@ useEffect(() => {
                         placeholder="Título obtenido"
                         value={titulo.titulo}
                         onChange={(e) => actualizarTitulo(index, 'titulo', e.target.value)}
-                        required={rolSecundario !== 'coinvestigador'}
+                        required
                       />
                       <input 
                         type="text" 
@@ -375,7 +471,7 @@ useEffect(() => {
                         placeholder="Institución"
                         value={titulo.institucion}
                         onChange={(e) => actualizarTitulo(index, 'institucion', e.target.value)}
-                        required={rolSecundario !== 'coinvestigador'}
+                        required
                       />
                       <input 
                         type="number" 
@@ -385,21 +481,18 @@ useEffect(() => {
                         max={new Date().getFullYear()}
                         value={titulo.anio}
                         onChange={(e) => actualizarTitulo(index, 'anio', e.target.value)}
-                        required={rolSecundario !== 'coinvestigador'}
+                        required
                       />
                     </div>
                   </div>
                 ))}
-                
                 <button type="button" className="btn-add" onClick={agregarTitulo}>
                   + Agregar Título
                 </button>
               </div>
 
-              {/* Experiencia Laboral */}
               <div className="form-section">
                 <h3 className="section-title">Experiencia Laboral</h3>
-
                 {experiencias.map((exp, index) => (
                   <div key={index} className="subsection-card">
                     <div className="subsection-header">
@@ -414,7 +507,6 @@ useEffect(() => {
                         </button>
                       )}
                     </div>
-                    
                     <div className="form-grid-2">
                       <input 
                         type="text" 
@@ -422,7 +514,7 @@ useEffect(() => {
                         placeholder="Cargo"
                         value={exp.cargo}
                         onChange={(e) => actualizarExperiencia(index, 'cargo', e.target.value)}
-                        required={rolSecundario !== 'coinvestigador'}
+                        required
                       />
                       <input 
                         type="text" 
@@ -430,10 +522,9 @@ useEffect(() => {
                         placeholder="Empresa"
                         value={exp.empresa}
                         onChange={(e) => actualizarExperiencia(index, 'empresa', e.target.value)}
-                        required={rolSecundario !== 'coinvestigador'}
+                        required
                       />
                     </div>
-                    
                     <div className="form-grid-2">
                       <div className="form-group">
                         <label className="label-small">Fecha inicio</label>
@@ -442,7 +533,7 @@ useEffect(() => {
                           className="form-input"
                           value={exp.fecha_inicio}
                           onChange={(e) => actualizarExperiencia(index, 'fecha_inicio', e.target.value)}
-                          required={rolSecundario !== 'coinvestigador'}
+                          required
                         />
                       </div>
                       <div className="form-group">
@@ -455,24 +546,21 @@ useEffect(() => {
                         />
                       </div>
                     </div>
-                    
                     <textarea 
                       className="form-textarea"
                       placeholder="Describe tus funciones y logros principales..."
                       value={exp.descripcion}
                       onChange={(e) => actualizarExperiencia(index, 'descripcion', e.target.value)}
-                      required={rolSecundario !== 'coinvestigador'}
+                      required
                       rows="3"
                     />
                   </div>
                 ))}
-                
                 <button type="button" className="btn-add" onClick={agregarExperiencia}>
                   + Agregar Experiencia
                 </button>
               </div>
 
-              {/* Botón de envío */}
               <button type="submit" disabled={loading} className="btn-submit">
                 {loading ? 'Registrando...' : 'Completar Registro'}
               </button>

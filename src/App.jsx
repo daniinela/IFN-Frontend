@@ -10,7 +10,7 @@ import Register from './pages/auth/Register';
 import SuperAdminDashboard from './pages/SuperAdmin/SuperAdminDashboard'
 import CoordGeorefDashboard from './pages/coordgeoref/CoordGeorefDashboard';
 import CoordBrigadasDashboard from './pages/coordbrigadas/CoordBrigadasDashboard';
-
+import RevisionSolicitudes from './pages/coordbrigadas/RevisionSolicitudes';
 // Super Admin
 import GenerarYAsignar from './pages/superadmin/GenerarYAsignar';
 
@@ -45,6 +45,7 @@ function App() {
             <Route path="/mis-conglomerados" element={<MisConglomerados />} />
             
             {/* Coord Brigadas - Rutas adicionales */}
+            <Route path="/revision-solicitudes" element={<RevisionSolicitudes />} />
             <Route path="/brigadas" element={<Brigadas />} />
             <Route path="/brigadistas" element={<Brigadistas />} />
             
