@@ -1,58 +1,60 @@
+// src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import ProtectedRoute from './components/ProtectedRoute';
-import DashboardLayout from './components/DashboardLayout';
-
-// Auth
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import DashboardLayout from './components/layout/DashboardLayout';
 
-// Dashboards por rol
-import SuperAdminDashboard from './pages/SuperAdmin/SuperAdminDashboard'
-import CoordGeorefDashboard from './pages/coordgeoref/CoordGeorefDashboard';
-import CoordBrigadasDashboard from './pages/coordbrigadas/CoordBrigadasDashboard';
-import RevisionSolicitudes from './pages/coordbrigadas/RevisionSolicitudes';
-// Super Admin
-import GenerarYAsignar from './pages/superadmin/GenerarYAsignar';
+// COORD_IFN
+import CoordDashboard from './pages/coord_ifn/Dashboard';
+import GestionConglomerados from './pages/coord_ifn/GestionConglomerados';
+import AsignacionMisiones from './pages/coord_ifn/AsignacionMisiones';
+import MonitoreoGlobal from './pages/coord_ifn/MonitoreoGlobal';
 
-// Coord Georef
-import MisConglomerados from './pages/coordgeoref/MisConglomerados';
+// GESTOR_RECURSOS
+import GestorDashboard from './pages/gestor_recursos/Dashboard';
+import GestionPersonal from './pages/gestor_recursos/GestionPersonal';
 
-// Coord Brigadas
-import Brigadas from './pages/coordbrigadas/Brigadas';
-import Brigadistas from './pages/coordbrigadas/Brigadistas';
+// JEFE_BRIGADA
+import JefeDashboard from './pages/jefe_brigada/Dashboard';
+import MisMisiones from './pages/jefe_brigada/MisMisiones';
+import RutasAcceso from './pages/jefe_brigada/RutasAcceso';
+import EstablecimientoSubparcelas from './pages/jefe_brigada/EstablecimientoSubparcelas';
+import ControlEquipos from './pages/jefe_brigada/ControlEquiposYSeguimiento';
+import MedicionIndividuos from './pages/jefe_brigada/MedicionIndividuos';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Rutas públicas */}
+        {/* Rutas Públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         
-        {/* Rutas protegidas con Layout único */}
-        <Route element={<ProtectedRoute allowedRoles={['super_admin', 'coord_georef', 'coord_brigadas', 'brigadista']} />}>
-          <Route element={<DashboardLayout />}>
-            
-            {/* DASHBOARDS SEPARADOS POR ROL */}
-            <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
-            <Route path="/coord-georef/dashboard" element={<CoordGeorefDashboard />} />
-            <Route path="/coord-brigadas/dashboard" element={<CoordBrigadasDashboard />} />
-            
-            {/* Super Admin - Rutas adicionales */}
-            <Route path="/generar-asignar" element={<GenerarYAsignar />} />
-            
-            {/* Coord Georef - Rutas adicionales */}
-            <Route path="/mis-conglomerados" element={<MisConglomerados />} />
-            
-            {/* Coord Brigadas - Rutas adicionales */}
-            <Route path="/revision-solicitudes" element={<RevisionSolicitudes />} />
-            <Route path="/brigadas" element={<Brigadas />} />
-            <Route path="/brigadistas" element={<Brigadistas />} />
-            
-          </Route>
+        {/* COORD_IFN */}
+        <Route path="/coord-ifn" element={<DashboardLayout />}>
+          <Route path="dashboard" element={<CoordDashboard />} />
+          <Route path="gestion-conglomerados" element={<GestionConglomerados />} />
+          <Route path="asignacion-misiones" element={<AsignacionMisiones />} />
+          <Route path="monitoreo-global" element={<MonitoreoGlobal />} />
         </Route>
-
-        {/* Redireccionamientos */}
+        
+        {/* GESTOR_RECURSOS */}
+        <Route path="/gestor-recursos" element={<DashboardLayout />}>
+          <Route path="dashboard" element={<GestorDashboard />} />
+          <Route path="gestion-personal" element={<GestionPersonal />} />
+        </Route>
+        
+        {/* JEFE_BRIGADA (y roles operativos) */}
+        <Route path="/jefe-brigada" element={<DashboardLayout />}>
+          <Route path="dashboard" element={<JefeDashboard />} />
+          <Route path="mis-misiones" element={<MisMisiones />} />
+          <Route path="rutas-acceso" element={<RutasAcceso />} />
+          <Route path="establecimiento-subparcelas" element={<EstablecimientoSubparcelas />} />
+          <Route path="control-equipos" element={<ControlEquipos />} />
+          <Route path="medicion-individuos" element={<MedicionIndividuos />} />
+        </Route>
+        
+        {/* Redirección por defecto */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

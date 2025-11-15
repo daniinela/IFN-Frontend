@@ -1,3 +1,4 @@
+// src/pages/coordbrigadas/Brigadas.jsx
 import { useState, useEffect } from 'react';
 import axios from '../../api/axiosConfig';
 import WeatherWidget from '../../components/WeatherWidget';
