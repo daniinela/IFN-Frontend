@@ -5,6 +5,7 @@ import { brigadasService } from '../../services/brigadasService';
 import MapboxComponent from '../../components/MapboxComponent';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorAlert from '../../components/common/ErrorAlert';
+import './MonitoreoGlobal.css';
 
 export default function MonitoreoGlobal() {
   const [loading, setLoading] = useState(false);
@@ -153,7 +154,12 @@ export default function MonitoreoGlobal() {
 
             {/* Aquí iría un mapa con todos los puntos */}
             <div className="mapa-placeholder">
-              <p>🗺️ Vista de mapa con {conglomerados.length} puntos</p>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              <p>Vista de mapa con {conglomerados.length} puntos</p>
               <small>Usa MapboxComponent con múltiples marcadores</small>
             </div>
           </div>
@@ -164,6 +170,10 @@ export default function MonitoreoGlobal() {
             
             {conglomerados.length === 0 ? (
               <div className="empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
                 <p>No hay conglomerados con el filtro seleccionado</p>
               </div>
             ) : (
@@ -195,7 +205,10 @@ export default function MonitoreoGlobal() {
                         <td>
                           {cong.jefe_brigada_asignado_id ? (
                             <span className="jefe-info">
-                              ✓ Asignado
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                              Asignado
                             </span>
                           ) : (
                             <span className="sin-asignar">Sin asignar</span>
@@ -211,7 +224,12 @@ export default function MonitoreoGlobal() {
                         <td>
                           {cong.estado === 'no_establecido' && cong.razon_no_establecido && (
                             <span className="razon-no-establecido">
-                              ⚠️ {cong.razon_no_establecido}
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                <line x1="12" y1="9" x2="12" y2="13" />
+                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                              </svg>
+                              {cong.razon_no_establecido}
                             </span>
                           )}
                         </td>
@@ -239,7 +257,7 @@ export default function MonitoreoGlobal() {
           <div className="modal-content modal-large" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Detalle: {conglomeradoSeleccionado.codigo}</h3>
-              <button onClick={() => setShowModalDetalle(false)}>✕</button>
+              <button onClick={() => setShowModalDetalle(false)} className="modal-close">✕</button>
             </div>
             
             <div className="modal-body">
@@ -283,8 +301,15 @@ export default function MonitoreoGlobal() {
 
                 {conglomeradoSeleccionado.estado === 'no_establecido' && (
                   <div className="alert-danger">
-                    <strong>⚠️ Razón No Establecido:</strong>
-                    <p>{conglomeradoSeleccionado.razon_no_establecido}</p>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                      <line x1="12" y1="9" x2="12" y2="13" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    <div>
+                      <strong>Razón No Establecido:</strong>
+                      <p>{conglomeradoSeleccionado.razon_no_establecido}</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -358,9 +383,20 @@ export default function MonitoreoGlobal() {
                           <td>{spf.longitud_prediligenciada}</td>
                           <td>
                             {spf.se_establecio ? (
-                              <span className="badge-success">✓ Sí</span>
+                              <span className="badge-success">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                Sí
+                              </span>
                             ) : spf.razon_no_establecida ? (
-                              <span className="badge-danger">✕ No ({spf.razon_no_establecida})</span>
+                              <span className="badge-danger">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <line x1="18" y1="6" x2="6" y2="18" />
+                                  <line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                                No ({spf.razon_no_establecida})
+                              </span>
                             ) : (
                               <span className="badge-pending">Pendiente</span>
                             )}

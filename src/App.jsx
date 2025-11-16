@@ -19,8 +19,8 @@ import JefeDashboard from './pages/jefe_brigada/Dashboard';
 import MisMisiones from './pages/jefe_brigada/MisMisiones';
 import RutasAcceso from './pages/jefe_brigada/RutasAcceso';
 import EstablecimientoSubparcelas from './pages/jefe_brigada/EstablecimientoSubparcelas';
-import ControlEquipos from './pages/jefe_brigada/ControlEquiposYSeguimiento';
-import MedicionIndividuos from './pages/jefe_brigada/MedicionIndividuos';
+//import ControlEquipos from './pages/jefe_brigada/ControlEquiposYSeguimiento';
+// MedicionIndividuos from './pages/jefe_brigada/MedicionIndividuos';
 
 function App() {
   return (
@@ -50,8 +50,6 @@ function App() {
           <Route path="mis-misiones" element={<MisMisiones />} />
           <Route path="rutas-acceso" element={<RutasAcceso />} />
           <Route path="establecimiento-subparcelas" element={<EstablecimientoSubparcelas />} />
-          <Route path="control-equipos" element={<ControlEquipos />} />
-          <Route path="medicion-individuos" element={<MedicionIndividuos />} />
         </Route>
         
         {/* Redirección por defecto */}

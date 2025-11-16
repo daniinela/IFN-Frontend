@@ -5,6 +5,7 @@ import { usuariosService } from '../../services/usuariosService';
 import { geoService } from '../../services/geoService';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorAlert from '../../components/common/ErrorAlert';
+import './GestionPersonal.css';
 
 export default function GestionPersonal() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -197,9 +198,13 @@ export default function GestionPersonal() {
 
       {error && <ErrorAlert mensaje={error} onClose={() => setError('')} />}
       {success && (
-        <div className="alert-success">
-          ✅ {success}
-          <button onClick={() => setSuccess('')}>✕</button>
+        <div className="alert alert-success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" strokeWidth="2"/>
+            <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" strokeWidth="2"/>
+          </svg>
+          {success}
+          <button onClick={() => setSuccess('')} className="alert-close">✕</button>
         </div>
       )}
 
@@ -233,7 +238,12 @@ export default function GestionPersonal() {
           // TAB 1: PENDIENTES
           usuariosPendientes.length === 0 ? (
             <div className="empty-state">
-              <p>No hay candidaturas pendientes</p>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <h3>No hay candidaturas pendientes</h3>
+              <p>Todas las candidaturas han sido revisadas</p>
             </div>
           ) : (
             <div className="usuarios-grid">
@@ -276,7 +286,12 @@ export default function GestionPersonal() {
           // TAB 2: APROBADOS
           usuariosAprobados.length === 0 ? (
             <div className="empty-state">
-              <p>No hay usuarios aprobados</p>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <h3>No hay usuarios aprobados</h3>
+              <p>Aún no se han aprobado candidaturas</p>
             </div>
           ) : (
             <div className="usuarios-tabla">
@@ -319,8 +334,13 @@ export default function GestionPersonal() {
         ) : (
           // TAB 3: ROLES
           <div className="roles-section">
-            <div className="alert-info">
-              ℹ️ Selecciona un usuario aprobado para asignarle roles operacionales
+            <div className="alert alert-info">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+              Selecciona un usuario aprobado para asignarle roles operacionales
             </div>
             <p>Usa la pestaña "Personal Aprobado" para asignar roles</p>
           </div>
@@ -333,7 +353,7 @@ export default function GestionPersonal() {
           <div className="modal-content modal-large" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Detalle: {usuarioSeleccionado.nombre_completo}</h3>
-              <button onClick={() => setShowModalDetalle(false)}>✕</button>
+              <button onClick={() => setShowModalDetalle(false)} className="modal-close">✕</button>
             </div>
             
             <div className="modal-body">
@@ -400,13 +420,20 @@ export default function GestionPersonal() {
                     onClick={() => aprobarUsuario(usuarioSeleccionado.id)}
                     className="btn-success"
                   >
-                    ✓ Aprobar
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Aprobar
                   </button>
                   <button 
                     onClick={() => rechazarUsuario(usuarioSeleccionado.id)}
                     className="btn-danger"
                   >
-                    ✕ Rechazar
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                    Rechazar
                   </button>
                 </>
               )}
@@ -424,15 +451,16 @@ export default function GestionPersonal() {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Asignar Rol: {usuarioSeleccionado.nombre_completo}</h3>
-              <button onClick={() => setShowModalAsignarRol(false)}>✕</button>
+              <button onClick={() => setShowModalAsignarRol(false)} className="modal-close">✕</button>
             </div>
             
             <div className="modal-body">
               <div className="form-group">
-                <label>Rol *</label>
+                <label className="form-label">Rol *</label>
                 <select
                   value={formRol.tipo_rol_id}
                   onChange={(e) => setFormRol({ ...formRol, tipo_rol_id: e.target.value })}
+                  className="form-select"
                 >
                   <option value="">-- Selecciona un rol --</option>
                   {rolesDisponibles.map(rol => (
@@ -444,13 +472,14 @@ export default function GestionPersonal() {
               </div>
 
               <div className="form-group">
-                <label>Región (Opcional)</label>
+                <label className="form-label">Región (Opcional)</label>
                 <select
                   value={formRol.region_id}
                   onChange={(e) => {
                     setFormRol({ ...formRol, region_id: e.target.value, departamento_id: '', municipio_id: '' });
                     if (e.target.value) cargarDepartamentos(e.target.value);
                   }}
+                  className="form-select"
                 >
                   <option value="">-- Todas las regiones --</option>
                   {regiones.map(region => (
@@ -462,7 +491,7 @@ export default function GestionPersonal() {
               </div>
 
               <div className="form-group">
-                <label>Departamento (Opcional)</label>
+                <label className="form-label">Departamento (Opcional)</label>
                 <select
                   value={formRol.departamento_id}
                   onChange={(e) => {
@@ -470,6 +499,7 @@ export default function GestionPersonal() {
                     if (e.target.value) cargarMunicipios(e.target.value);
                   }}
                   disabled={!formRol.region_id}
+                  className="form-select"
                 >
                   <option value="">-- Todos los departamentos --</option>
                   {departamentos.map(depto => (
@@ -481,11 +511,12 @@ export default function GestionPersonal() {
               </div>
 
               <div className="form-group">
-                <label>Municipio (Opcional)</label>
+                <label className="form-label">Municipio (Opcional)</label>
                 <select
                   value={formRol.municipio_id}
                   onChange={(e) => setFormRol({ ...formRol, municipio_id: e.target.value })}
                   disabled={!formRol.departamento_id}
+                  className="form-select"
                 >
                   <option value="">-- Todos los municipios --</option>
                   {municipios.map(mun => (
@@ -496,8 +527,13 @@ export default function GestionPersonal() {
                 </select>
               </div>
 
-              <div className="alert-info">
-                ℹ️ El alcance geográfico define dónde puede operar este usuario
+              <div className="alert alert-info">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                El alcance geográfico define dónde puede operar este usuario
               </div>
             </div>
 

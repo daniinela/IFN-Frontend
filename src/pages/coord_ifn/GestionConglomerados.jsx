@@ -4,17 +4,7 @@ import { conglomeradosService } from '../../services/conglomeradosService';
 import MapboxComponent from '../../components/MapboxComponent';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorAlert from '../../components/common/ErrorAlert';
-
-const CORPORACIONES = [
-  { sigla: 'CAR', nombre: 'CAR - Cundinamarca' },
-  { sigla: 'CVC', nombre: 'CVC - Valle del Cauca' },
-  { sigla: 'CORANTIOQUIA', nombre: 'CORANTIOQUIA - Centro de Antioquia' },
-  { sigla: 'CORNARE', nombre: 'CORNARE - Ríos Negro y Nare' },
-  { sigla: 'CARDIQUE', nombre: 'CARDIQUE - Canal del Dique' },
-  { sigla: 'CORPOGUAJIRA', nombre: 'CORPOGUAJIRA - La Guajira' },
-  { sigla: 'CORPOAMAZONIA', nombre: 'CORPOAMAZONIA - Sur de la Amazonia' },
-  { sigla: 'CDA', nombre: 'CDA - San Andrés' }
-];
+import './GestionConglomerados.css';
 
 export default function GestionConglomerados() {
   const [loading, setLoading] = useState(false);
@@ -26,11 +16,9 @@ export default function GestionConglomerados() {
   const [totalPages, setTotalPages] = useState(0);
   const [busqueda, setBusqueda] = useState('');
   
-  // Modal generación batch
   const [showModalGenerar, setShowModalGenerar] = useState(false);
   const [cantidad, setCantidad] = useState(100);
   
-  // Modal detalle conglomerado
   const [showModalDetalle, setShowModalDetalle] = useState(false);
   const [conglomeradoSeleccionado, setConglomeradoSeleccionado] = useState(null);
 
@@ -107,7 +95,6 @@ export default function GestionConglomerados() {
       setLoading(true);
       setError('');
       
-      // Marcar como no establecido con el motivo
       await conglomeradosService.cambiarEstado(id, 'no_establecido');
       
       setSuccess('Conglomerado rechazado');
@@ -134,21 +121,31 @@ export default function GestionConglomerados() {
           <p>Carga y validación de puntos de muestreo</p>
         </div>
         <button onClick={() => setShowModalGenerar(true)} className="btn-primary">
-          ➕ Generar Conglomerados
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Generar Conglomerados
         </button>
       </div>
 
-      {/* Mensajes */}
       {error && <ErrorAlert mensaje={error} onClose={() => setError('')} />}
       {success && (
-        <div className="alert-success">
-          ✅ {success}
-          <button onClick={() => setSuccess('')}>✕</button>
+        <div className="alert alert-success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" strokeWidth="2"/>
+            <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" strokeWidth="2"/>
+          </svg>
+          {success}
+          <button onClick={() => setSuccess('')} className="alert-close">✕</button>
         </div>
       )}
 
-      {/* Búsqueda */}
       <div className="search-bar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.35-4.35" />
+        </svg>
         <input
           type="text"
           placeholder="Buscar por código..."
@@ -157,12 +154,16 @@ export default function GestionConglomerados() {
         />
       </div>
 
-      {/* Lista de Conglomerados */}
       {loading ? (
         <LoadingSpinner mensaje="Cargando conglomerados..." />
       ) : conglomerados.length === 0 ? (
         <div className="empty-state">
-          <p>No hay conglomerados registrados</p>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          <h3>No hay conglomerados registrados</h3>
+          <p>Genera un nuevo lote de conglomerados para comenzar</p>
         </div>
       ) : (
         <>
@@ -203,52 +204,65 @@ export default function GestionConglomerados() {
             </table>
           </div>
 
-          {/* Paginación */}
           {totalPages > 1 && (
             <div className="pagination">
               <button 
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
+                className="pagination-btn"
               >
-                ← Anterior
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                Anterior
               </button>
-              <span>Página {page} de {totalPages}</span>
+              <span className="pagination-info">Página {page} de {totalPages}</span>
               <button 
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
+                className="pagination-btn"
               >
-                Siguiente →
+                Siguiente
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
               </button>
             </div>
           )}
         </>
       )}
 
-      {/* Modal Generar Batch */}
+      {/* Modal Generar */}
       {showModalGenerar && (
         <div className="modal-overlay" onClick={() => setShowModalGenerar(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Generar Conglomerados</h3>
-              <button onClick={() => setShowModalGenerar(false)}>✕</button>
+              <button onClick={() => setShowModalGenerar(false)} className="modal-close">✕</button>
             </div>
             
             <div className="modal-body">
-              <p>Genera un lote de conglomerados con coordenadas aleatorias dentro de Colombia</p>
+              <p className="modal-description">Genera un lote de conglomerados con coordenadas aleatorias dentro de Colombia</p>
               
               <div className="form-group">
-                <label>Cantidad (1-500) *</label>
+                <label className="form-label">Cantidad (1-500) *</label>
                 <input
                   type="number"
                   min="1"
                   max="500"
                   value={cantidad}
                   onChange={(e) => setCantidad(parseInt(e.target.value))}
+                  className="form-input"
                 />
               </div>
 
-              <div className="alert-info">
-                ℹ️ Se generarán {cantidad} conglomerados con 5 subparcelas cada uno
+              <div className="alert alert-info">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                Se generarán {cantidad} conglomerados con 5 subparcelas cada uno
               </div>
             </div>
 
@@ -270,11 +284,10 @@ export default function GestionConglomerados() {
           <div className="modal-content modal-large" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Detalle Conglomerado: {conglomeradoSeleccionado.codigo}</h3>
-              <button onClick={() => setShowModalDetalle(false)}>✕</button>
+              <button onClick={() => setShowModalDetalle(false)} className="modal-close">✕</button>
             </div>
             
             <div className="modal-body">
-              {/* Mapa */}
               <div className="modal-map">
                 <MapboxComponent
                   latitud={conglomeradoSeleccionado.latitud}
@@ -283,7 +296,6 @@ export default function GestionConglomerados() {
                 />
               </div>
 
-              {/* Información */}
               <div className="info-grid">
                 <div className="info-item">
                   <label>Estado:</label>
@@ -305,7 +317,6 @@ export default function GestionConglomerados() {
                 </div>
               </div>
 
-              {/* Subparcelas */}
               {conglomeradoSeleccionado.conglomerados_subparcelas && (
                 <div className="subparcelas-info">
                   <h4>Subparcelas Prediligenciadas</h4>
@@ -338,7 +349,10 @@ export default function GestionConglomerados() {
                     onClick={() => aprobarConglomerado(conglomeradoSeleccionado.id)} 
                     className="btn-success"
                   >
-                    ✓ Aprobar para Asignación
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Aprobar para Asignación
                   </button>
                   <button 
                     onClick={() => {
@@ -349,7 +363,11 @@ export default function GestionConglomerados() {
                     }}
                     className="btn-danger"
                   >
-                    ✕ Rechazar
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                    Rechazar
                   </button>
                 </>
               )}

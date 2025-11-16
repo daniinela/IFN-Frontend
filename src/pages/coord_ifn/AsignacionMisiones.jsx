@@ -4,6 +4,7 @@ import { conglomeradosService } from '../../services/conglomeradosService';
 import { usuariosService } from '../../services/usuariosService';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorAlert from '../../components/common/ErrorAlert';
+import './AsignacionMisiones.css';
 
 export default function AsignacionMisiones() {
   const [loading, setLoading] = useState(false);
@@ -41,11 +42,9 @@ export default function AsignacionMisiones() {
     try {
       const response = await usuariosService.getJefesBrigadaDisponibles({});
       
-      // Agrupar jefes por región/departamento y contar sus asignaciones
       const jefesConCarga = await Promise.all(
         response.data.map(async (jefe) => {
           try {
-            // Obtener conglomerados asignados a este jefe
             const conglosResponse = await conglomeradosService.getAll(1, 999, '');
             const conglosAsignados = conglosResponse.data.data.filter(
               c => c.jefe_brigada_asignado_id === jefe.usuarios.id
@@ -66,7 +65,6 @@ export default function AsignacionMisiones() {
         })
       );
 
-      // Ordenar por menor carga de trabajo
       jefesConCarga.sort((a, b) => a.carga_trabajo - b.carga_trabajo);
       
       setJefesBrigada(jefesConCarga);
@@ -121,21 +119,39 @@ export default function AsignacionMisiones() {
         </div>
         <div className="header-stats">
           <div className="stat-badge">
-            <span className="stat-label">Pendientes:</span>
-            <span className="stat-value">{conglomeradosListos.length}</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <div>
+              <span className="stat-label">Pendientes:</span>
+              <span className="stat-value">{conglomeradosListos.length}</span>
+            </div>
           </div>
           <div className="stat-badge">
-            <span className="stat-label">Jefes Disponibles:</span>
-            <span className="stat-value">{jefesBrigada.length}</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <div>
+              <span className="stat-label">Jefes Disponibles:</span>
+              <span className="stat-value">{jefesBrigada.length}</span>
+            </div>
           </div>
         </div>
       </div>
 
       {error && <ErrorAlert mensaje={error} onClose={() => setError('')} />}
       {success && (
-        <div className="alert-success">
-          ✅ {success}
-          <button onClick={() => setSuccess('')}>✕</button>
+        <div className="alert alert-success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" strokeWidth="2"/>
+            <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" strokeWidth="2"/>
+          </svg>
+          {success}
+          <button onClick={() => setSuccess('')} className="alert-close">✕</button>
         </div>
       )}
 
@@ -143,7 +159,10 @@ export default function AsignacionMisiones() {
 
       {!loading && conglomeradosListos.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">📋</div>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 11l3 3L22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
           <h3>No hay conglomerados pendientes de asignación</h3>
           <p>Todos los conglomerados aprobados han sido asignados</p>
         </div>
@@ -158,15 +177,33 @@ export default function AsignacionMisiones() {
               
               <div className="card-body">
                 <div className="info-row">
-                  <span className="label">Latitud:</span>
+                  <span className="label">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    Latitud:
+                  </span>
                   <span className="value">{cong.latitud}</span>
                 </div>
                 <div className="info-row">
-                  <span className="label">Longitud:</span>
+                  <span className="label">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    Longitud:
+                  </span>
                   <span className="value">{cong.longitud}</span>
                 </div>
                 <div className="info-row">
-                  <span className="label">CAR:</span>
+                  <span className="label">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                    CAR:
+                  </span>
                   <span className="value">{cong.car_sigla || 'N/A'}</span>
                 </div>
                 {cong.municipio_id && (
@@ -180,8 +217,12 @@ export default function AsignacionMisiones() {
               <div className="card-footer">
                 <button 
                   onClick={() => abrirModalAsignar(cong)}
-                  className="btn-primary"
+                  className="btn-primary-full"
                 >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
                   Asignar Jefe de Brigada
                 </button>
               </div>
@@ -196,7 +237,7 @@ export default function AsignacionMisiones() {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Asignar Conglomerado: {conglomeradoSeleccionado.codigo}</h3>
-              <button onClick={() => setShowModalAsignar(false)}>✕</button>
+              <button onClick={() => setShowModalAsignar(false)} className="modal-close">✕</button>
             </div>
             
             <div className="modal-body">
@@ -212,7 +253,7 @@ export default function AsignacionMisiones() {
               </div>
 
               <div className="form-group">
-                <label>Seleccionar Jefe de Brigada *</label>
+                <label className="form-label">Seleccionar Jefe de Brigada *</label>
                 <select
                   value={jefeSeleccionado}
                   onChange={(e) => setJefeSeleccionado(e.target.value)}
@@ -229,8 +270,13 @@ export default function AsignacionMisiones() {
               </div>
 
               {jefeSeleccionado && (
-                <div className="alert-info">
-                  ℹ️ Se creará automáticamente la brigada en estado "formación"
+                <div className="alert alert-info">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
+                  Se creará automáticamente la brigada en estado "formación"
                 </div>
               )}
             </div>
