@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
 import axios from 'axios';
+import './Login.css';
 
 const API_USUARIOS = import.meta.env.VITE_API_USUARIOS || 'http://localhost:3001';
 
@@ -102,7 +103,7 @@ function Login() {
       'COORD_IFN': '/coord-ifn/dashboard',
       'GESTOR_RECURSOS': '/gestor-recursos/dashboard',
       'JEFE_BRIGADA': '/jefe-brigada/dashboard',
-      'BOTANICO': '/jefe-brigada/dashboard', // También accede como brigadista
+      'BOTANICO': '/jefe-brigada/dashboard',
       'TECNICO': '/jefe-brigada/dashboard',
       'COINVESTIGADOR': '/jefe-brigada/dashboard'
     };
@@ -140,7 +141,6 @@ function Login() {
       const token = data.session.access_token;
       localStorage.setItem('token', token);
 
-      // Obtener cuentas_rol del usuario
       const rolesResponse = await axios.get(
         `${API_USUARIOS}/api/cuentas-rol/usuario/${data.user.id}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
@@ -174,7 +174,6 @@ function Login() {
         return;
       }
 
-      // Obtener datos completos del usuario
       const userResponse = await axios.get(
         `${API_USUARIOS}/api/usuarios/${data.user.id}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
@@ -220,11 +219,23 @@ function Login() {
       <section className="login-section">
         <div className="login-container">
           <div className="role-selector-card">
+            <div className="role-selector-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </div>
+            
             <h3>Selecciona tu Rol</h3>
             <p>Tu cuenta tiene múltiples roles asignados</p>
 
             {error && (
               <div className="error-alert">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
                 <span>{error}</span>
               </div>
             )}
@@ -233,6 +244,7 @@ function Login() {
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
               required
+              className="role-select"
             >
               <option value="">-- Selecciona un rol --</option>
               {userRoles.map(rol => (
@@ -242,7 +254,10 @@ function Login() {
               ))}
             </select>
 
-            <button onClick={handleRoleSelection}>
+            <button onClick={handleRoleSelection} className="btn-primary">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
               Continuar
             </button>
 
@@ -254,7 +269,11 @@ function Login() {
                 supabase.auth.signOut();
                 localStorage.clear();
               }}
+              className="btn-secondary"
             >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
               Volver
             </button>
           </div>
@@ -266,17 +285,39 @@ function Login() {
   return (
     <section className="login-section">
       <div className="login-container">
-        <form onSubmit={handleSubmit}>
-          <h3>Iniciar Sesión</h3>
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="login-header">
+            <div className="login-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" />
+                <path d="M12 22V12" />
+                <path d="M22 7L12 12L2 7" />
+                <path d="M2 17L12 12L22 17" />
+              </svg>
+            </div>
+            <h3>Iniciar Sesión</h3>
+            <p>Inventario Forestal Nacional</p>
+          </div>
 
           {error && (
             <div className="error-alert">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
               <span>{error}</span>
             </div>
           )}
 
           <div className="form-group">
-            <label htmlFor="email">Correo electrónico</label>
+            <label htmlFor="email">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+              Correo electrónico
+            </label>
             <input 
               type="email" 
               id="email" 
@@ -288,7 +329,13 @@ function Login() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Contraseña</label>
+            <label htmlFor="password">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              Contraseña
+            </label>
             <div className="password-wrapper">
               <input 
                 type={showPassword ? 'text' : 'password'} 
@@ -301,14 +348,39 @@ function Login() {
               <button 
                 type="button" 
                 onClick={() => setShowPassword(!showPassword)}
+                className="password-toggle"
               >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
+                {showPassword ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
               </button>
             </div>
           </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+          <button type="submit" disabled={loading} className="btn-submit">
+            {loading ? (
+              <>
+                <div className="btn-spinner"></div>
+                Iniciando sesión...
+              </>
+            ) : (
+              <>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+                Iniciar Sesión
+              </>
+            )}
           </button>
         </form>
       </div>

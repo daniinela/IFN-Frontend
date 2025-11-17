@@ -8,7 +8,6 @@ function CoordenadasInput({ label, value, onChange, tipo = 'lat', required = fal
   const [segundos, setSegundos] = useState('');
   const [error, setError] = useState('');
 
-  // Parsear coordenada DMS al montar
   useEffect(() => {
     if (value) {
       const match = value.match(/^(-?\d{1,3})°(\d{1,2})'([\d.]{1,5})''$/);
@@ -23,7 +22,6 @@ function CoordenadasInput({ label, value, onChange, tipo = 'lat', required = fal
   const validarYActualizar = (g, m, s) => {
     setError('');
     
-    // Validar rangos
     const gradosNum = parseInt(g) || 0;
     const minutosNum = parseInt(m) || 0;
     const segundosNum = parseFloat(s) || 0;
@@ -50,7 +48,6 @@ function CoordenadasInput({ label, value, onChange, tipo = 'lat', required = fal
       return;
     }
 
-    // Construir formato DMS
     if (g && m && s) {
       const coordenada = `${g}°${m}'${s}''`;
       onChange(coordenada);
@@ -126,7 +123,16 @@ function CoordenadasInput({ label, value, onChange, tipo = 'lat', required = fal
         </div>
       </div>
 
-      {error && <p className="coord-error">{error}</p>}
+      {error && (
+        <p className="coord-error">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+          {error}
+        </p>
+      )}
       
       {value && !error && (
         <p className="coord-preview">

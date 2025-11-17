@@ -34,5 +34,11 @@ export const usuariosService = {
     axios.get(`${USUARIOS_URL}/api/cuentas-rol/filtros`, { 
       params: { rol_codigo: 'JEFE_BRIGADA', solo_aprobados: true, ...filtros }, 
       ...getAuthHeader() 
+    }),
+  
+  getCuentasRolFiltros: (filtros) =>
+    axios.get(`${USUARIOS_URL}/api/cuentas-rol/filtros`, {
+      params: { solo_aprobados: true, ...filtros },
+      ...getAuthHeader()
     })
 };

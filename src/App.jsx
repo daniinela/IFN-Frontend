@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import DashboardLayout from './components/layout/DashboardLayout';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // COORD_IFN
 import CoordDashboard from './pages/coord_ifn/Dashboard';
@@ -19,8 +20,6 @@ import JefeDashboard from './pages/jefe_brigada/Dashboard';
 import MisMisiones from './pages/jefe_brigada/MisMisiones';
 import RutasAcceso from './pages/jefe_brigada/RutasAcceso';
 import EstablecimientoSubparcelas from './pages/jefe_brigada/EstablecimientoSubparcelas';
-//import ControlEquipos from './pages/jefe_brigada/ControlEquiposYSeguimiento';
-// MedicionIndividuos from './pages/jefe_brigada/MedicionIndividuos';
 
 function App() {
   return (
@@ -31,7 +30,14 @@ function App() {
         <Route path="/register" element={<Register />} />
         
         {/* COORD_IFN */}
-        <Route path="/coord-ifn" element={<DashboardLayout />}>
+        <Route 
+          path="/coord-ifn" 
+          element={
+            <ProtectedRoute allowedRoles={['COORD_IFN']}>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="dashboard" element={<CoordDashboard />} />
           <Route path="gestion-conglomerados" element={<GestionConglomerados />} />
           <Route path="asignacion-misiones" element={<AsignacionMisiones />} />
@@ -39,13 +45,27 @@ function App() {
         </Route>
         
         {/* GESTOR_RECURSOS */}
-        <Route path="/gestor-recursos" element={<DashboardLayout />}>
+        <Route 
+          path="/gestor-recursos" 
+          element={
+            <ProtectedRoute allowedRoles={['GESTOR_RECURSOS']}>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="dashboard" element={<GestorDashboard />} />
           <Route path="gestion-personal" element={<GestionPersonal />} />
         </Route>
         
         {/* JEFE_BRIGADA (y roles operativos) */}
-        <Route path="/jefe-brigada" element={<DashboardLayout />}>
+        <Route 
+          path="/jefe-brigada" 
+          element={
+            <ProtectedRoute allowedRoles={['JEFE_BRIGADA', 'BOTANICO', 'TECNICO_AUX', 'COINVESTIGADOR']}>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="dashboard" element={<JefeDashboard />} />
           <Route path="mis-misiones" element={<MisMisiones />} />
           <Route path="rutas-acceso" element={<RutasAcceso />} />

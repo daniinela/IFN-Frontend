@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import axios from '../../api/axiosConfig';
 import WeatherWidget from '../../components/WeatherWidget';
-import MapboxComponent from '../../components/MapboxComponent';
+import MapboxComponent from '../../components/common/MapBoxComponent';
 import './Brigadas.css';
 
 function Brigadas() {

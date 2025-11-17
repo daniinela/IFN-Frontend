@@ -1,7 +1,7 @@
 // src/pages/coord_ifn/GestionConglomerados.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { conglomeradosService } from '../../services/conglomeradosService';
-import MapboxComponent from '../../components/MapboxComponent';
+import ModalEditarConglomerado from '../../components/common/ModalEditarConglomerado';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorAlert from '../../components/common/ErrorAlert';
 import './GestionConglomerados.css';
@@ -22,11 +22,7 @@ export default function GestionConglomerados() {
   const [showModalDetalle, setShowModalDetalle] = useState(false);
   const [conglomeradoSeleccionado, setConglomeradoSeleccionado] = useState(null);
 
-  useEffect(() => {
-    cargarConglomerados();
-  }, [page, busqueda]);
-
-  const cargarConglomerados = async () => {
+  const cargarConglomerados = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -40,7 +36,11 @@ export default function GestionConglomerados() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, busqueda]);
+  
+  useEffect(() => {
+    cargarConglomerados();
+  }, [cargarConglomerados]);
 
   const generarBatch = async () => {
     if (cantidad < 1 || cantidad > 500) {
@@ -62,47 +62,6 @@ export default function GestionConglomerados() {
     } catch (err) {
       console.error('Error generando conglomerados:', err);
       setError(err.response?.data?.error || 'Error al generar conglomerados');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const aprobarConglomerado = async (id) => {
-    try {
-      setLoading(true);
-      setError('');
-      
-      await conglomeradosService.cambiarEstado(id, 'listo_para_asignacion');
-      
-      setSuccess('Conglomerado aprobado para asignación');
-      setShowModalDetalle(false);
-      cargarConglomerados();
-    } catch (err) {
-      console.error('Error aprobando:', err);
-      setError(err.response?.data?.error || 'Error al aprobar conglomerado');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const rechazarConglomerado = async (id, motivo) => {
-    if (!motivo || motivo.trim().length < 10) {
-      setError('El motivo debe tener al menos 10 caracteres');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError('');
-      
-      await conglomeradosService.cambiarEstado(id, 'no_establecido');
-      
-      setSuccess('Conglomerado rechazado');
-      setShowModalDetalle(false);
-      cargarConglomerados();
-    } catch (err) {
-      console.error('Error rechazando:', err);
-      setError(err.response?.data?.error || 'Error al rechazar conglomerado');
     } finally {
       setLoading(false);
     }
@@ -176,6 +135,9 @@ export default function GestionConglomerados() {
                   <th>Longitud</th>
                   <th>Estado</th>
                   <th>CAR</th>
+                  <th>Región</th>
+                  <th>Departamento</th>
+                  <th>Municipio</th>
                   <th>Fecha Creación</th>
                   <th>Acciones</th>
                 </tr>
@@ -184,18 +146,53 @@ export default function GestionConglomerados() {
                 {conglomerados.map(cong => (
                   <tr key={cong.id}>
                     <td className="codigo">{cong.codigo}</td>
-                    <td>{cong.latitud}</td>
-                    <td>{cong.longitud}</td>
+                    <td>{parseFloat(cong.latitud).toFixed(6)}</td>
+                    <td>{parseFloat(cong.longitud).toFixed(6)}</td>
                     <td>
                       <span className={`badge-estado ${cong.estado}`}>
                         {cong.estado.replace(/_/g, ' ')}
                       </span>
                     </td>
-                    <td>{cong.car_sigla || 'N/A'}</td>
+                    <td>
+                      {cong.car_sigla ? (
+                        <span className="car-badge">{cong.car_sigla}</span>
+                      ) : (
+                        <span className="sin-asignar">Sin CAR</span>
+                      )}
+                    </td>
+                    <td>
+                      {cong.region_id ? (
+                        <span className="geo-badge">✓ Asignada</span>
+                      ) : (
+                        <span className="sin-asignar">Sin región</span>
+                      )}
+                    </td>
+                    <td>
+                      {cong.departamento_id ? (
+                        <span className="geo-badge">✓ Asignado</span>
+                      ) : (
+                        <span className="sin-asignar">Sin depto</span>
+                      )}
+                    </td>
+                    <td>
+                      {cong.municipio_id ? (
+                        <span className="geo-badge">✓ Asignado</span>
+                      ) : (
+                        <span className="sin-asignar">Sin municipio</span>
+                      )}
+                    </td>
                     <td>{new Date(cong.created_at).toLocaleDateString()}</td>
                     <td>
-                      <button onClick={() => verDetalle(cong)} className="btn-view">
-                        Ver Detalle
+                      <button 
+                        onClick={() => verDetalle(cong)} 
+                        className="btn-view"
+                        title="Ver y editar detalles"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                        Editar
                       </button>
                     </td>
                   </tr>
@@ -278,102 +275,21 @@ export default function GestionConglomerados() {
         </div>
       )}
 
-      {/* Modal Detalle */}
+      {/* Modal Editar/Detalle */}
       {showModalDetalle && conglomeradoSeleccionado && (
-        <div className="modal-overlay" onClick={() => setShowModalDetalle(false)}>
-          <div className="modal-content modal-large" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Detalle Conglomerado: {conglomeradoSeleccionado.codigo}</h3>
-              <button onClick={() => setShowModalDetalle(false)} className="modal-close">✕</button>
-            </div>
-            
-            <div className="modal-body">
-              <div className="modal-map">
-                <MapboxComponent
-                  latitud={conglomeradoSeleccionado.latitud}
-                  longitud={conglomeradoSeleccionado.longitud}
-                  codigo={conglomeradoSeleccionado.codigo}
-                />
-              </div>
-
-              <div className="info-grid">
-                <div className="info-item">
-                  <label>Estado:</label>
-                  <span className={`badge-estado ${conglomeradoSeleccionado.estado}`}>
-                    {conglomeradoSeleccionado.estado.replace(/_/g, ' ')}
-                  </span>
-                </div>
-                <div className="info-item">
-                  <label>CAR:</label>
-                  <span>{conglomeradoSeleccionado.car_sigla || 'No asignado'}</span>
-                </div>
-                <div className="info-item">
-                  <label>Latitud:</label>
-                  <span>{conglomeradoSeleccionado.latitud}</span>
-                </div>
-                <div className="info-item">
-                  <label>Longitud:</label>
-                  <span>{conglomeradoSeleccionado.longitud}</span>
-                </div>
-              </div>
-
-              {conglomeradoSeleccionado.conglomerados_subparcelas && (
-                <div className="subparcelas-info">
-                  <h4>Subparcelas Prediligenciadas</h4>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>SPF</th>
-                        <th>Latitud</th>
-                        <th>Longitud</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {conglomeradoSeleccionado.conglomerados_subparcelas.map(spf => (
-                        <tr key={spf.id}>
-                          <td>SPF{spf.subparcela_num}</td>
-                          <td>{spf.latitud_prediligenciada}</td>
-                          <td>{spf.longitud_prediligenciada}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-
-            <div className="modal-footer">
-              {conglomeradoSeleccionado.estado === 'en_revision' && (
-                <>
-                  <button 
-                    onClick={() => aprobarConglomerado(conglomeradoSeleccionado.id)} 
-                    className="btn-success"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Aprobar para Asignación
-                  </button>
-                  <button 
-                    onClick={() => {
-                      const motivo = prompt('Motivo del rechazo (mínimo 10 caracteres):');
-                      if (motivo) {
-                        rechazarConglomerado(conglomeradoSeleccionado.id, motivo);
-                      }
-                    }}
-                    className="btn-danger"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                    Rechazar
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        <ModalEditarConglomerado
+          conglomerado={conglomeradoSeleccionado}
+          onClose={() => {
+            setShowModalDetalle(false);
+            setConglomeradoSeleccionado(null);
+          }}
+          onSuccess={(msg) => {
+            setSuccess(msg);
+            setShowModalDetalle(false);
+            setConglomeradoSeleccionado(null);
+            cargarConglomerados();
+          }}
+        />
       )}
     </div>
   );

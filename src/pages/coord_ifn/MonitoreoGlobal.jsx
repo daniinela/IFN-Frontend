@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { conglomeradosService } from '../../services/conglomeradosService';
 import { brigadasService } from '../../services/brigadasService';
-import MapboxComponent from '../../components/MapboxComponent';
+import MapboxComponent from '../../components/common/MapBoxComponent';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorAlert from '../../components/common/ErrorAlert';
 import './MonitoreoGlobal.css';

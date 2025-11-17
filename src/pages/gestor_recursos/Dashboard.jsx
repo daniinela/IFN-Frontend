@@ -28,9 +28,18 @@ export default function Dashboard() {
       setLoading(true);
       setError('');
       
-      const pendientesRes = await usuariosService.getPendientes();
-      const todosRes = await usuariosService.getAll();
-      const usuarios = todosRes.data;
+      // Obtener datos
+      const [pendientesRes, todosRes] = await Promise.all([
+        usuariosService.getPendientes(),
+        usuariosService.getAll()
+      ]);
+      
+      console.log('📊 Respuesta getPendientes:', pendientesRes.data);
+      console.log('📊 Respuesta getAll:', todosRes.data);
+      
+      // Asegurar que tenemos arrays
+      const pendientes = Array.isArray(pendientesRes.data) ? pendientesRes.data : [];
+      const usuarios = Array.isArray(todosRes.data) ? todosRes.data : [];
       
       const aprobados = usuarios.filter(u => u.estado_aprobacion === 'aprobado').length;
       const rechazados = usuarios.filter(u => u.estado_aprobacion === 'rechazado').length;
@@ -38,8 +47,13 @@ export default function Dashboard() {
       // Función auxiliar para contar roles
       const contarPorRol = async (codigo) => {
         try {
-          const res = await usuariosService.getJefesBrigadaDisponibles({ rol_codigo: codigo });
-          return res.data.length;
+          const res = await usuariosService.getCuentasRolFiltros({ 
+            rol_codigo: codigo,
+            solo_aprobados: true 
+          });
+          const data = Array.isArray(res.data) ? res.data : [];
+          console.log(`📊 ${codigo}:`, data.length);
+          return data.length;
         } catch (err) {
           console.error(`Error contando ${codigo}:`, err);
           return 0;
@@ -55,7 +69,7 @@ export default function Dashboard() {
       ]);
       
       setEstadisticas({
-        pendientes: pendientesRes.data.length,
+        pendientes: pendientes.length,
         aprobados,
         rechazados,
         jefes_brigada: jefes,
@@ -65,6 +79,7 @@ export default function Dashboard() {
       });
     } catch (err) {
       console.error('Error cargando estadísticas:', err);
+      console.error('Detalle del error:', err.response?.data);
       setError(err.response?.data?.error || 'Error al cargar estadísticas');
     } finally {
       setLoading(false);
