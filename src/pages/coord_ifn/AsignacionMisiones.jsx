@@ -39,41 +39,64 @@ export default function AsignacionMisiones() {
   };
 
   const cargarJefesBrigada = async () => {
-    try {
-      const response = await usuariosService.getJefesBrigadaDisponibles({});
-      
-      const jefesConCarga = await Promise.all(
-        response.data.map(async (jefe) => {
-          try {
-            const conglosResponse = await conglomeradosService.getAll(1, 999, '');
-            const conglosAsignados = conglosResponse.data.data.filter(
-              c => c.jefe_brigada_asignado_id === jefe.usuarios.id
-            );
-            
-            return {
-              ...jefe,
-              carga_trabajo: conglosAsignados.length,
-              nombre_completo: jefe.usuarios.nombre_completo
-            };
-          } catch {
-            return {
-              ...jefe,
-              carga_trabajo: 0,
-              nombre_completo: jefe.usuarios.nombre_completo
-            };
-          }
-        })
-      );
+  try {
+    setLoading(true);
+    
+    // 🔥 USAR FILTROS VACÍOS para traer TODOS los jefes disponibles
+    // O si quieres filtrar por ubicación, pasa region_id, departamento_id, etc.
+    const response = await usuariosService.getJefesBrigadaDisponibles({
+      // region_id: 'ALGUNA_REGION_ID', // Opcional
+      // departamento_id: 'ALGUN_DEPTO_ID', // Opcional
+    });
+    
+    console.log('👥 Jefes de Brigada obtenidos:', response.data);
+    
+    // Calcular carga de trabajo para cada jefe
+    const jefesConCarga = await Promise.all(
+      response.data.map(async (cuentaRol) => {
+        try {
+          const conglosResponse = await conglomeradosService.getAll(1, 999, '');
+          const conglosAsignados = conglosResponse.data.data.filter(
+            c => c.jefe_brigada_asignado_id === cuentaRol.usuarios.id
+          );
+          
+          return {
+            ...cuentaRol,
+            carga_trabajo: conglosAsignados.length,
+            nombre_completo: cuentaRol.usuarios.nombre_completo,
+            ubicacion: {
+              region_id: cuentaRol.region_id,
+              departamento_id: cuentaRol.departamento_id,
+              municipio_id: cuentaRol.municipio_id
+            }
+          };
+        } catch {
+          return {
+            ...cuentaRol,
+            carga_trabajo: 0,
+            nombre_completo: cuentaRol.usuarios.nombre_completo,
+            ubicacion: {
+              region_id: cuentaRol.region_id,
+              departamento_id: cuentaRol.departamento_id,
+              municipio_id: cuentaRol.municipio_id
+            }
+          };
+        }
+      })
+    );
 
-      jefesConCarga.sort((a, b) => a.carga_trabajo - b.carga_trabajo);
-      
-      setJefesBrigada(jefesConCarga);
-    } catch (err) {
-      console.error('Error cargando jefes:', err);
-      setError('Error al cargar jefes de brigada');
-    }
-  };
-
+    // Ordenar por carga de trabajo ascendente
+    jefesConCarga.sort((a, b) => a.carga_trabajo - b.carga_trabajo);
+    
+    console.log('✅ Jefes con carga calculada:', jefesConCarga);
+    setJefesBrigada(jefesConCarga);
+  } catch (err) {
+    console.error('❌ Error cargando jefes:', err);
+    setError('Error al cargar jefes de brigada disponibles');
+  } finally {
+    setLoading(false);
+  }
+};
   const abrirModalAsignar = (conglomerado) => {
     setConglomeradoSeleccionado(conglomerado);
     setJefeSeleccionado('');

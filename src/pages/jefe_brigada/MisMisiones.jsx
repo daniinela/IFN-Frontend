@@ -1,7 +1,6 @@
 // src/pages/jefe_brigada/MisMisiones.jsx
-
-import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams,Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { brigadasService } from '../../services/brigadasService';
 import { usuariosService } from '../../services/usuariosService';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -27,18 +26,22 @@ export default function MisMisiones() {
     fecha_fin_campo: ''
   });
 
+  // 🔧 FIX 1: Remover useCallback que causa loop infinito
   useEffect(() => {
     if (brigada_id) {
       cargarBrigada();
     }
-  }, [cargarBrigada, brigada_id]);
+  }, [brigada_id]); // Solo depende de brigada_id
 
-  const cargarBrigada = useCallback(async () => {
+  const cargarBrigada = async () => {
     try {
       setLoading(true);
       setError('');
 
+      console.log('📡 Cargando brigada:', brigada_id);
       const res = await brigadasService.getById(brigada_id);
+      console.log('✅ Brigada cargada:', res.data);
+      
       setBrigada(res.data);
 
       if (res.data.fecha_inicio_campo) {
@@ -48,48 +51,54 @@ export default function MisMisiones() {
         });
       }
     } catch (err) {
-      console.error('Error cargando brigada:', err);
+      console.error('❌ Error cargando brigada:', err);
       setError(err.response?.data?.error || 'Error al cargar brigada');
     } finally {
       setLoading(false);
     }
-  }, [brigada_id]);
+  };
 
-  const cargarPersonal = useCallback(async () => {
+  // 🔧 FIX 2: Cargar personal solo cuando se abre modal Y se selecciona rol
+  useEffect(() => {
+    if (showModalAgregar && rolSeleccionado) {
+      cargarPersonal();
+    }
+  }, [showModalAgregar, rolSeleccionado]);
+
+  const cargarPersonal = async () => {
     try {
       setLoading(true);
       setError('');
 
-      // Build filtros: use selected role code and optionally filter by brigada location
-      const filtros = {};
-      if (rolSeleccionado) filtros.rol_codigo = rolSeleccionado;
-      if (brigada?.municipio_residencia) filtros.municipio_id = brigada.municipio_residencia;
-      else if (brigada?.departamento_id) filtros.departamento_id = brigada.departamento_id;
+      console.log('🔍 Buscando personal con rol:', rolSeleccionado);
+
+      const filtros = { rol_codigo: rolSeleccionado };
+      
+      // Agregar filtros geográficos si existen
+      if (brigada?.municipio_residencia) {
+        filtros.municipio_id = brigada.municipio_residencia;
+      } else if (brigada?.departamento_id) {
+        filtros.departamento_id = brigada.departamento_id;
+      }
 
       const res = await usuariosService.getCuentasRolFiltros(filtros);
+      console.log('✅ Personal encontrado:', res.data);
 
       const personal = (res.data || []).map(item => ({
         id: item.usuarios?.id || item.usuario_id,
-        nombre: item.usuarios?.nombre_completo || `${item.usuarios?.nombre || ''}`,
+        nombre: item.usuarios?.nombre_completo || 'Sin nombre',
         municipio: item.usuarios?.municipio_residencia || null,
         cuentaRolId: item.id
       }));
 
       setPersonalDisponible(personal);
     } catch (err) {
-      console.error('Error cargando personal:', err);
+      console.error('❌ Error cargando personal:', err);
       setError('No se pudo cargar personal disponible');
     } finally {
       setLoading(false);
     }
-  }, [rolSeleccionado, brigada]);
-
-  // Cuando se abre el modal y se selecciona un rol, traer personal filtrado
-  useEffect(() => {
-    if (showModalAgregar && rolSeleccionado) {
-      cargarPersonal();
-    }
-  }, [showModalAgregar, rolSeleccionado, cargarPersonal]);
+  };
 
   const agregarMiembro = async () => {
     if (!usuarioSeleccionado || !rolSeleccionado) {
@@ -100,14 +109,26 @@ export default function MisMisiones() {
     try {
       setLoading(true);
       setError('');
-      // Mapear código de rol (roles_sistema.codigo) a valor esperado por brigadas-service
+      
+      // 🔧 FIX 3: Mapeo correcto de roles
       const roleMap = {
         'BOTANICO': 'Botanico',
         'TECNICO_AUX': 'Tecnico',
         'COINVESTIGADOR': 'Coinvestigador',
         'JEFE_BRIGADA': 'Jefe'
       };
-      const rolOperativo = roleMap[rolSeleccionado] || rolSeleccionado;
+      
+      const rolOperativo = roleMap[rolSeleccionado];
+      
+      if (!rolOperativo) {
+        throw new Error(`Rol ${rolSeleccionado} no válido`);
+      }
+
+      console.log('📝 Agregando miembro:', { 
+        brigada_id, 
+        usuario: usuarioSeleccionado, 
+        rol: rolOperativo 
+      });
 
       await brigadasService.agregarMiembro(brigada_id, usuarioSeleccionado, rolOperativo);
       
@@ -117,7 +138,7 @@ export default function MisMisiones() {
       setRolSeleccionado('');
       cargarBrigada();
     } catch (err) {
-      console.error('Error agregando miembro:', err);
+      console.error('❌ Error agregando miembro:', err);
       setError(err.response?.data?.error || 'Error al agregar miembro');
     } finally {
       setLoading(false);
@@ -145,54 +166,53 @@ export default function MisMisiones() {
       setSuccess('Fechas registradas correctamente');
       cargarBrigada();
     } catch (err) {
-      console.error('Error registrando fechas:', err);
+      console.error('❌ Error registrando fechas:', err);
       setError(err.response?.data?.error || 'Error al registrar fechas');
     } finally {
       setLoading(false);
     }
   };
 
+  // 🔧 FIX 4: Validaciones mejoradas
   if (!brigada_id) {
-  return (
-    <div className="empty-state-page">
-      <div className="empty-state-icon">
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="12" />
-          <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
+    return (
+      <div className="empty-state-page">
+        <div className="empty-state-icon">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+        </div>
+        <h2>Brigada no especificada</h2>
+        <p>Debes acceder desde el Dashboard seleccionando una brigada</p>
+        <Link to="/jefe-brigada/dashboard" className="btn-primary" style={{ marginTop: '1.5rem' }}>
+          Volver al Dashboard
+        </Link>
       </div>
-      <h2>Brigada no especificada</h2>
-      <p>Debes acceder a esta página desde el Dashboard seleccionando una brigada activa</p>
-      <Link to="/jefe-brigada/dashboard" className="btn-primary" style={{ marginTop: '1.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
-        Volver al Dashboard
-      </Link>
-    </div>
-  );
-}
-if (loading && !brigada) return <LoadingSpinner mensaje="Cargando brigada..." />;
-if (error && !brigada) return <ErrorAlert mensaje={error} onRetry={cargarBrigada} />;
+    );
+  }
 
-if (!brigada) {
-  return (
-    <div className="empty-state-page">
-      <div className="empty-state-icon">
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
+  if (loading && !brigada) return <LoadingSpinner mensaje="Cargando brigada..." />;
+  if (error && !brigada) return <ErrorAlert mensaje={error} onRetry={cargarBrigada} />;
+
+  if (!brigada) {
+    return (
+      <div className="empty-state-page">
+        <div className="empty-state-icon">
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </div>
+        <h2>No hay brigada asignada</h2>
+        <p>No se encontró información de la brigada solicitada</p>
       </div>
-      <h2>No hay brigada asignada</h2>
-      <p>No se encontró información de la brigada solicitada o aún no tienes brigadas asignadas</p>
-    </div>
-  );
-}
+    );
+  }
+
   const rolesRequeridos = ['Jefe', 'Botanico', 'Tecnico'];
   const rolesAsignados = brigada.brigadas_rol_operativo?.map(m => m.rol_operativo) || [];
   const brigadaCompleta = rolesRequeridos.every(rol => rolesAsignados.includes(rol));
@@ -221,7 +241,7 @@ if (!brigada) {
         </div>
       )}
 
-      {/* Fechas de Campo (F1.1) */}
+      {/* Fechas de Campo */}
       <div className="section">
         <div className="section-header">
           <div className="section-icon">
@@ -337,7 +357,7 @@ if (!brigada) {
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
               <h3>No hay miembros asignados</h3>
-              <p>Agrega al menos: Botánico y Técnico para conformar la brigada</p>
+              <p>Agrega miembros para conformar la brigada</p>
             </div>
           )}
         </div>
@@ -358,7 +378,11 @@ if (!brigada) {
                 <select
                   className="form-select"
                   value={rolSeleccionado}
-                  onChange={(e) => setRolSeleccionado(e.target.value)}
+                  onChange={(e) => {
+                    setRolSeleccionado(e.target.value);
+                    setUsuarioSeleccionado('');
+                    setPersonalDisponible([]);
+                  }}
                 >
                   <option value="">-- Selecciona rol --</option>
                   <option value="BOTANICO">Botánico</option>
@@ -373,9 +397,16 @@ if (!brigada) {
                   className="form-select"
                   value={usuarioSeleccionado}
                   onChange={(e) => setUsuarioSeleccionado(e.target.value)}
-                  disabled={!rolSeleccionado}
+                  disabled={!rolSeleccionado || personalDisponible.length === 0}
                 >
-                  <option value="">-- Selecciona persona --</option>
+                  <option value="">
+                    {!rolSeleccionado 
+                      ? '-- Primero selecciona un rol --'
+                      : personalDisponible.length === 0
+                      ? 'Cargando personal...'
+                      : '-- Selecciona persona --'
+                    }
+                  </option>
                   {personalDisponible.map(persona => (
                     <option key={persona.id} value={persona.id}>
                       {persona.nombre}
@@ -390,7 +421,7 @@ if (!brigada) {
                   <line x1="12" y1="16" x2="12" y2="12" />
                   <line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
-                Lista filtrada por rol operativo y ubicación (si aplica). Selecciona rol y persona.
+                Selecciona primero el rol para ver el personal disponible
               </div>
             </div>
 

@@ -1,0 +1,530 @@
+/* ModalEditarConglomerado.css - FIX MAPA */
+
+/* ========== CRITICAL: MAPA DEBE TENER ESPACIO ========== */
+.modal-content {
+  background: var(--bg-card, white);
+  border-radius: 12px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ========== MAPA - HEIGHT FORZADO ========== */
+.modal-map {
+  height: 450px !important;
+  min-height: 450px !important;
+  width: 100% !important;
+  border-radius: 12px;
+  overflow: hidden !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid var(--border-color, #e2e8f0);
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.modal-map .leaflet-map-container {
+  height: 450px !important;
+  min-height: 450px !important;
+  width: 100% !important;
+}
+
+.modal-map .leaflet-container {
+  height: 450px !important;
+  min-height: 450px !important;
+  width: 100% !important;
+  background: #e5e7eb !important;
+  z-index: 1 !important;
+}
+
+/* ========== SECCIONES ========== */
+.form-section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.form-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.form-section h4 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0 0 1.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-section h4::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(180deg, #2d6a4f, #40916c);
+  border-radius: 2px;
+}
+
+/* ========== TABS (NUEVOS) ========== */
+.modal-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 28px 0;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.modal-tab:hover {
+  background: rgba(45, 106, 79, 0.1);
+  color: #2d6a4f;
+}
+
+.modal-tab.active {
+  background: white;
+  color: #2d6a4f;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.modal-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2d6a4f, #40916c);
+  border-radius: 3px 3px 0 0;
+}
+
+.modal-tab svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ========== COORDENADAS BLOQUEADAS (NUEVO) ========== */
+.coords-display {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(45, 106, 79, 0.08) 0%, rgba(64, 145, 108, 0.08) 100%);
+  border-radius: 10px;
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.coord-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.coord-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.coord-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d6a4f;
+  font-family: 'Courier New', monospace;
+}
+
+.coord-note {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-secondary, #64748b);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ========== FORMULARIOS ========== */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.label-hint {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-secondary, #64748b);
+  font-style: italic;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: var(--text-primary, #0f172a);
+  background: var(--bg-card, white);
+  border: 2px solid var(--border-color, #e2e8f0);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary-color, #2d6a4f);
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+}
+
+.form-input:disabled,
+.form-select:disabled {
+  background: var(--bg-secondary, #f1f5f9);
+  color: var(--text-secondary, #64748b);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-input::placeholder {
+  color: var(--text-secondary, #94a3b8);
+}
+
+.form-select {
+  cursor: pointer;
+}
+
+.form-select:disabled {
+  cursor: not-allowed;
+}
+
+/* ========== ALERTAS ========== */
+.alert-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  background: #fee2e2;
+  border: 2px solid #ef4444;
+  border-radius: 12px;
+  color: #991b1b;
+  font-size: 0.9375rem;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-error svg {
+  flex-shrink: 0;
+  color: #ef4444;
+  margin-top: 0.125rem;
+}
+
+.alert-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: currentColor;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.alert-close:hover {
+  opacity: 1;
+}
+
+/* ========== SUBPARCELAS ========== */
+.subparcelas-info-compact {
+  background: var(--bg-secondary, #f1f5f9);
+  border-radius: 12px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.subparcelas-info-compact table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.subparcelas-info-compact thead tr {
+  background: var(--bg-card, white);
+}
+
+.subparcelas-info-compact th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+  border-bottom: 2px solid var(--border-color, #e2e8f0);
+}
+
+.subparcelas-info-compact td {
+  padding: 0.625rem 1rem;
+  color: var(--text-primary, #0f172a);
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.subparcelas-info-compact tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.subparcelas-info-compact tbody tr:hover {
+  background: rgba(45, 106, 79, 0.05);
+}
+
+.coord-cell {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #2d6a4f;
+  font-weight: 500;
+}
+
+.badge-success {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-pending {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ========== SPINNER ========== */
+.spinner {
+  width: 18px;
+  height: 18px;
+  animation: spin 1s linear infinite;
+}
+
+.spinner circle {
+  stroke-dasharray: 50, 150;
+  stroke-dashoffset: 0;
+  animation: spinCircle 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinCircle {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}
+
+/* ========== ESTADO VACÍO ========== */
+.empty-state-small {
+  text-align: center;
+  padding: 32px;
+  color: #9ca3af;
+}
+
+.empty-state-small svg {
+  margin: 0 auto 12px;
+  color: #d1d5db;
+}
+
+.empty-state-small p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* ========== MODAL HEADER/FOOTER ========== */
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.modal-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: var(--text-secondary, #64748b);
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: var(--bg-secondary, #f1f5f9);
+  color: var(--text-primary, #0f172a);
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-secondary, #f1f5f9);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: var(--border, #e2e8f0);
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #2d6a4f, #40916c);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(45, 106, 79, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .coords-display {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-tabs {
+    padding: 12px 16px 0;
+  }
+
+  .modal-map {
+    height: 350px !important;
+    min-height: 350px !important;
+  }
+
+  .modal-map .leaflet-map-container,
+  .modal-map .leaflet-container {
+    height: 350px !important;
+    min-height: 350px !important;
+  }
+}

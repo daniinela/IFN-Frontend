@@ -10,9 +10,11 @@ export default function Sidebar() {
   
   const activeRole = localStorage.getItem('active-role') || '';
   
-  // Obtener parámetros de la URL actual
+  // 🔧 FIX: Obtener parámetros correctamente
   const brigada_id = searchParams.get('brigada');
   const conglomerado_id = searchParams.get('conglomerado');
+
+  console.log('🔍 Sidebar - Parámetros URL:', { brigada_id, conglomerado_id, activeRole });
 
   const getMenuItems = () => {
     const menus = {
@@ -103,6 +105,7 @@ export default function Sidebar() {
             </svg>
           )
         },
+        // 🔧 FIX: Mostrar SOLO si hay brigada_id
         ...(brigada_id ? [
           { 
             path: `/jefe-brigada/mis-misiones?brigada=${brigada_id}`, 
@@ -128,6 +131,7 @@ export default function Sidebar() {
             )
           }
         ] : []),
+        // 🔧 FIX: Mostrar SOLO si hay conglomerado_id
         ...(conglomerado_id ? [
           { 
             path: `/jefe-brigada/establecimiento-subparcelas?conglomerado=${conglomerado_id}`, 
@@ -197,7 +201,9 @@ export default function Sidebar() {
       ]
     };
 
-    return menus[activeRole] || [];
+    const items = menus[activeRole] || [];
+    console.log('📋 Menu items generados:', items.length, 'para rol:', activeRole);
+    return items;
   };
 
   const menuItems = getMenuItems();
@@ -273,7 +279,7 @@ export default function Sidebar() {
           </Link>
         ))}
         
-        {/* Mensaje cuando no hay brigada activa */}
+        {/* 🔧 FIX: Mensaje mejorado cuando no hay brigada */}
         {activeRole === 'JEFE_BRIGADA' && !brigada_id && sidebarOpen && (
           <div className="sidebar-hint">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

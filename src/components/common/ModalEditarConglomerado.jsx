@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { geoService, CARS_COLOMBIA } from '../../services/geoService';
 import { conglomeradosService } from '../../services/conglomeradosService';
-import MapboxComponent from './MapBoxComponent';
+import LeafletMapComponent from './LeafletMapComponent';
 import LoadingSpinner from './LoadingSpinner';
 import './ModalEditarConglomerado.css';
 
@@ -129,34 +129,41 @@ export default function ModalEditarConglomerado({
     return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validarFormulario()) {
-      return;
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (!validarFormulario()) {
+    return;
+  }
 
-    try {
-      setLoading(true);
-      setError('');
+  try {
+    setLoading(true);
+    setError('');
 
-      await conglomeradosService.update(conglomerado.id, {
-        codigo: formData.codigo,
-        car_sigla: formData.car_sigla,
-        region_id: formData.region_id,
-        departamento_id: formData.departamento_id,
-        municipio_id: formData.municipio_id
-      });
+    const response = await conglomeradosService.update(conglomerado.id, {
+      codigo: formData.codigo,
+      car_sigla: formData.car_sigla,
+      region_id: formData.region_id,
+      departamento_id: formData.departamento_id,
+      municipio_id: formData.municipio_id
+    });
 
-      onSuccess?.('Conglomerado actualizado exitosamente');
-      onClose();
-    } catch (err) {
-      console.error('Error actualizando conglomerado:', err);
-      setError(err.response?.data?.error || 'Error al actualizar el conglomerado');
-    } finally {
-      setLoading(false);
-    }
-  };
+    console.log('✅ Conglomerado actualizado:', response.data);
+
+    // Mostrar mensaje personalizado si cambió de estado
+    const mensaje = response.data.conglomerado?.estado === 'listo_para_asignacion'
+      ? '✅ Conglomerado actualizado y listo para asignación a Jefe de Brigada'
+      : '✅ Conglomerado actualizado exitosamente';
+
+    onSuccess?.(mensaje);
+    onClose();
+  } catch (err) {
+    console.error('Error actualizando conglomerado:', err);
+    setError(err.response?.data?.error || 'Error al actualizar el conglomerado');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -211,7 +218,7 @@ export default function ModalEditarConglomerado({
               <div className="form-section">
                 <h4>Vista del Conglomerado y Subparcelas</h4>
                 <div className="modal-map">
-                  <MapboxComponent
+                  <LeafletMapComponent
                     latitud={conglomerado.latitud}
                     longitud={conglomerado.longitud}
                     codigo={conglomerado.codigo}

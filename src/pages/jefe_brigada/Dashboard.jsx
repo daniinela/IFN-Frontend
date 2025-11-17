@@ -22,10 +22,13 @@ export default function Dashboard() {
       setLoading(true);
       setError('');
       
+      console.log('📡 Dashboard - Cargando misiones...');
       const brigadasRes = await brigadasService.getMisBrigadas();
+      console.log('✅ Dashboard - Brigadas recibidas:', brigadasRes.data);
+      
       setBrigadas(brigadasRes.data);
     } catch (err) {
-      console.error('Error cargando misiones:', err);
+      console.error('❌ Error cargando misiones:', err);
       setError(err.response?.data?.error || 'Error al cargar misiones');
     } finally {
       setLoading(false);
@@ -66,6 +69,8 @@ export default function Dashboard() {
   const brigadasActivas = brigadas.filter(b => 
     ['formacion', 'en_transito', 'en_ejecucion'].includes(b.estado)
   );
+
+  console.log('📊 Dashboard render:', { total: brigadas.length, activas: brigadasActivas.length });
 
   return (
     <div className="dashboard-jefe">
@@ -144,6 +149,8 @@ export default function Dashboard() {
       ) : (
         <div className="brigadas-grid">
           {brigadasActivas.map(brigada => {
+            console.log('🎯 Renderizando brigada:', brigada.id, 'conglomerado:', brigada.conglomerado_id);
+            
             return (
               <div key={brigada.id} className="brigada-card">
                 <div className="card-header">
@@ -249,9 +256,11 @@ export default function Dashboard() {
                     </button>
                   ))}
                   
+                  {/* 🔧 FIX CRÍTICO: Pasar brigada_id correctamente */}
                   <Link 
                     to={`/jefe-brigada/mis-misiones?brigada=${brigada.id}`}
                     className="btn-primary"
+                    onClick={() => console.log('🔗 Navegando a Mis Misiones con brigada_id:', brigada.id)}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
