@@ -103,9 +103,9 @@ function Login() {
       'COORD_IFN': '/coord-ifn/dashboard',
       'GESTOR_RECURSOS': '/gestor-recursos/dashboard',
       'JEFE_BRIGADA': '/jefe-brigada/dashboard',
-      'BOTANICO': '/jefe-brigada/dashboard',
-      'TECNICO': '/jefe-brigada/dashboard',
-      'COINVESTIGADOR': '/jefe-brigada/dashboard'
+      'BOTANICO': '/brigadista/dashboard',
+      'TECNICO_AUX': '/brigadista/dashboard',
+      'COINVESTIGADOR': '/brigadista/dashboard'
     };
 
     const ruta = rutas[codigoRol];

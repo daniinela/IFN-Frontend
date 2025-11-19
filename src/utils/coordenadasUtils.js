@@ -1,4 +1,4 @@
-// src/utils/coordenadasUtils.js
+//front- src/utils/coordenadasUtils.js
 
 /**
  * Convierte coordenadas de formato DMS (gg°mm'ss.ss'') a decimal

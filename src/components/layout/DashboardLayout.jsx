@@ -37,45 +37,45 @@ export default function DashboardLayout() {
     }
   };
 
-  const cambiarRol = async (nuevoRol) => {
-    try {
-      localStorage.setItem('active-role', nuevoRol);
-      setActiveRole(nuevoRol);
-      setShowRoleMenu(false);
-      
-      const token = localStorage.getItem('token');
-      
-      const cuentasRol = userRoles;
-      const rolActivo = cuentasRol.find(r => r.codigo === nuevoRol);
-      
-      if (!rolActivo) {
-        console.error('Rol no encontrado');
-        return;
-      }
-
-      const rolesResponse = await fetch(`http://localhost:3001/api/usuarios/roles/${rolActivo.id}/privilegios`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      const privilegiosDelRol = await rolesResponse.json();
-      localStorage.setItem('user-privileges', JSON.stringify(privilegiosDelRol));
-
-      // Rutas según rol
-      const rutas = {
-        'COORD_IFN': '/coord-ifn/dashboard',
-        'GESTOR_RECURSOS': '/gestor-recursos/dashboard',
-        'JEFE_BRIGADA': '/jefe-brigada/dashboard',
-        'BOTANICO': '/jefe-brigada/dashboard',
-        'TECNICO_AUX': '/jefe-brigada/dashboard',
-        'COINVESTIGADOR': '/jefe-brigada/dashboard'
-      };
-
-      navigate(rutas[nuevoRol] || '/');
-    } catch (error) {
-      console.error('Error cambiando rol:', error);
-      alert('Error al cambiar de rol');
+const cambiarRol = async (nuevoRol) => {
+  try {
+    localStorage.setItem('active-role', nuevoRol);
+    setActiveRole(nuevoRol);
+    setShowRoleMenu(false);
+    
+    const token = localStorage.getItem('token');
+    
+    const cuentasRol = userRoles;
+    const rolActivo = cuentasRol.find(r => r.codigo === nuevoRol);
+    
+    if (!rolActivo) {
+      console.error('Rol no encontrado');
+      return;
     }
-  };
+
+    const rolesResponse = await fetch(`http://localhost:3001/api/usuarios/roles/${rolActivo.id}/privilegios`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    const privilegiosDelRol = await rolesResponse.json();
+    localStorage.setItem('user-privileges', JSON.stringify(privilegiosDelRol));
+
+    // ✅ CORRECCIÓN: Rutas correctas para brigadistas
+    const rutas = {
+      'COORD_IFN': '/coord-ifn/dashboard',
+      'GESTOR_RECURSOS': '/gestor-recursos/dashboard',
+      'JEFE_BRIGADA': '/jefe-brigada/dashboard',
+      'BOTANICO': '/brigadista/dashboard',        
+      'TECNICO_AUX': '/brigadista/dashboard',    
+      'COINVESTIGADOR': '/brigadista/dashboard'  
+    };
+
+    navigate(rutas[nuevoRol] || '/');
+  } catch (error) {
+    console.error('Error cambiando rol:', error);
+    alert('Error al cambiar de rol');
+  }
+};
 
   const handleLogout = async () => {
     try {

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { conglomeradosService } from '../../services/conglomeradosService';
 import { usuariosService } from '../../services/usuariosService';
+import { geoService } from '../../services/geoService';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorAlert from '../../components/common/ErrorAlert';
 import './AsignacionMisiones.css';
@@ -14,13 +15,16 @@ export default function AsignacionMisiones() {
   const [conglomeradosListos, setConglomeradosListos] = useState([]);
   const [jefesBrigada, setJefesBrigada] = useState([]);
   
+  // 🆕 Cache de nombres geográficos
+  const [departamentosCache, setDepartamentosCache] = useState({});
+  const [municipiosCache, setMunicipiosCache] = useState({});
+  
   const [showModalAsignar, setShowModalAsignar] = useState(false);
   const [conglomeradoSeleccionado, setConglomeradoSeleccionado] = useState(null);
   const [jefeSeleccionado, setJefeSeleccionado] = useState('');
 
   useEffect(() => {
     cargarConglomeradosListos();
-    cargarJefesBrigada();
   }, []);
 
   const cargarConglomeradosListos = async () => {
@@ -38,43 +42,127 @@ export default function AsignacionMisiones() {
     }
   };
 
-  const cargarJefesBrigada = async () => {
+  // 🆕 Función para obtener nombre del departamento
+  const obtenerNombreDepartamento = async (departamento_id) => {
+    if (!departamento_id) return 'N/A';
+    
+    // Revisar cache primero
+    if (departamentosCache[departamento_id]) {
+      return departamentosCache[departamento_id];
+    }
+    
+    try {
+      const response = await geoService.getDepartamentoById(departamento_id);
+      const nombre = response.data.nombre;
+      
+      // Guardar en cache
+      setDepartamentosCache(prev => ({ ...prev, [departamento_id]: nombre }));
+      
+      return nombre;
+    } catch (err) {
+      console.error('Error obteniendo departamento:', err);
+      return departamento_id; // Fallback al ID
+    }
+  };
+
+  // 🆕 Función para obtener nombre del municipio
+  const obtenerNombreMunicipio = async (municipio_id) => {
+    if (!municipio_id) return 'N/A';
+    
+    if (municipiosCache[municipio_id]) {
+      return municipiosCache[municipio_id];
+    }
+    
+    try {
+      const response = await geoService.getMunicipioById(municipio_id);
+      const nombre = response.data.nombre;
+      
+      setMunicipiosCache(prev => ({ ...prev, [municipio_id]: nombre }));
+      
+      return nombre;
+    } catch (err) {
+      console.error('Error obteniendo municipio:', err);
+      return municipio_id;
+    }
+  };
+
+const cargarJefesBrigada = async (conglomerado = null) => {
   try {
     setLoading(true);
+    const filtros = {
+      rol_codigo: 'JEFE_BRIGADA',
+      activo: true,
+      solo_aprobados: true
+    };
     
-    // 🔥 USAR FILTROS VACÍOS para traer TODOS los jefes disponibles
-    // O si quieres filtrar por ubicación, pasa region_id, departamento_id, etc.
-    const response = await usuariosService.getJefesBrigadaDisponibles({
-      // region_id: 'ALGUNA_REGION_ID', // Opcional
-      // departamento_id: 'ALGUN_DEPTO_ID', // Opcional
-    });
+    const conglo = conglomerado || conglomeradoSeleccionado;
     
-    console.log('👥 Jefes de Brigada obtenidos:', response.data);
+    if (conglo) {
+      if (conglo.municipio_id) {
+        filtros.municipio_id = conglo.municipio_id;
+      } else if (conglo.departamento_id) {
+        filtros.departamento_id = conglo.departamento_id;
+      } else if (conglo.region_id) {
+        filtros.region_id = conglo.region_id;
+      }
+    }
     
-    // Calcular carga de trabajo para cada jefe
+    const response = await usuariosService.getJefesBrigadaDisponibles(filtros);
+    
+    console.log('📦 Respuesta completa:', response.data);
+    
+    // ✅ FIX 1: Detectar formato del array correctamente
+    const jefesData = Array.isArray(response.data) 
+      ? response.data 
+      : (response.data?.data || []);
+    
+    console.log('👥 Array de jefes:', jefesData);
+    
+    // 🆕 Enriquecer con nombres de ubicación
     const jefesConCarga = await Promise.all(
-      response.data.map(async (cuentaRol) => {
+      jefesData.map(async (cuentaRol) => {
         try {
+          // ✅ FIX 2: Validar que usuarios existe antes de acceder a id
+          if (!cuentaRol?.usuarios?.id) {
+            console.warn('⚠️ Jefe sin usuario válido:', cuentaRol);
+            return null;
+          }
+          
           const conglosResponse = await conglomeradosService.getAll(1, 999, '');
           const conglosAsignados = conglosResponse.data.data.filter(
             c => c.jefe_brigada_asignado_id === cuentaRol.usuarios.id
           );
           
+          // 🆕 Obtener nombres
+          const nombreDepartamento = await obtenerNombreDepartamento(cuentaRol.departamento_id);
+          const nombreMunicipio = await obtenerNombreMunicipio(cuentaRol.municipio_id);
+          
           return {
             ...cuentaRol,
             carga_trabajo: conglosAsignados.length,
-            nombre_completo: cuentaRol.usuarios.nombre_completo,
+            nombre_completo: cuentaRol.usuarios.nombre_completo || 'Sin nombre',
+            departamento_nombre: nombreDepartamento,
+            municipio_nombre: nombreMunicipio,
             ubicacion: {
               region_id: cuentaRol.region_id,
               departamento_id: cuentaRol.departamento_id,
               municipio_id: cuentaRol.municipio_id
             }
           };
-        } catch {
+        } catch (err) {
+          console.error('❌ Error enriqueciendo jefe:', err);
+          
+          // ✅ FIX 3: Validar usuarios en el catch también
+          if (!cuentaRol?.usuarios) {
+            return null;
+          }
+          
           return {
             ...cuentaRol,
             carga_trabajo: 0,
-            nombre_completo: cuentaRol.usuarios.nombre_completo,
+            nombre_completo: cuentaRol.usuarios.nombre_completo || 'Sin nombre',
+            departamento_nombre: 'N/A',
+            municipio_nombre: 'N/A',
             ubicacion: {
               region_id: cuentaRol.region_id,
               departamento_id: cuentaRol.departamento_id,
@@ -85,11 +173,12 @@ export default function AsignacionMisiones() {
       })
     );
 
-    // Ordenar por carga de trabajo ascendente
-    jefesConCarga.sort((a, b) => a.carga_trabajo - b.carga_trabajo);
+    // Filtrar nulls antes de ordenar
+    const jefesFiltrados = jefesConCarga.filter(jefe => jefe !== null);
+    jefesFiltrados.sort((a, b) => a.carga_trabajo - b.carga_trabajo);
     
-    console.log('✅ Jefes con carga calculada:', jefesConCarga);
-    setJefesBrigada(jefesConCarga);
+    console.log('✅ Jefes enriquecidos:', jefesFiltrados.length);
+    setJefesBrigada(jefesFiltrados);
   } catch (err) {
     console.error('❌ Error cargando jefes:', err);
     setError('Error al cargar jefes de brigada disponibles');
@@ -97,10 +186,12 @@ export default function AsignacionMisiones() {
     setLoading(false);
   }
 };
+
   const abrirModalAsignar = (conglomerado) => {
     setConglomeradoSeleccionado(conglomerado);
     setJefeSeleccionado('');
     setShowModalAsignar(true);
+    cargarJefesBrigada(conglomerado);
   };
 
   const asignarConglomerado = async () => {
@@ -219,22 +310,6 @@ export default function AsignacionMisiones() {
                   </span>
                   <span className="value">{cong.longitud}</span>
                 </div>
-                <div className="info-row">
-                  <span className="label">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                      <polyline points="9 22 9 12 15 12 15 22" />
-                    </svg>
-                    CAR:
-                  </span>
-                  <span className="value">{cong.car_sigla || 'N/A'}</span>
-                </div>
-                {cong.municipio_id && (
-                  <div className="info-row">
-                    <span className="label">Municipio:</span>
-                    <span className="value">{cong.municipio_id}</span>
-                  </div>
-                )}
               </div>
               
               <div className="card-footer">
@@ -286,7 +361,8 @@ export default function AsignacionMisiones() {
                   {jefesBrigada.map(jefe => (
                     <option key={jefe.usuarios.id} value={jefe.usuarios.id}>
                       {jefe.nombre_completo} - Carga: {jefe.carga_trabajo} conglomerados
-                      {jefe.departamento_id && ` - Depto: ${jefe.departamento_id}`}
+                      {jefe.departamento_nombre && ` - ${jefe.departamento_nombre}`}
+                      {jefe.municipio_nombre && jefe.municipio_nombre !== 'N/A' && `, ${jefe.municipio_nombre}`}
                     </option>
                   ))}
                 </select>

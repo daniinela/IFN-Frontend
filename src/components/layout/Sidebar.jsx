@@ -1,5 +1,5 @@
 // src/components/layout/Sidebar.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import './Sidebar.css';
 
@@ -10,11 +10,30 @@ export default function Sidebar() {
   
   const activeRole = localStorage.getItem('active-role') || '';
   
-  // 🔧 FIX: Obtener parámetros correctamente
-  const brigada_id = searchParams.get('brigada');
-  const conglomerado_id = searchParams.get('conglomerado');
-
-  console.log('🔍 Sidebar - Parámetros URL:', { brigada_id, conglomerado_id, activeRole });
+  const brigada_id = searchParams.get('brigada');  
+  const [estadoBrigada, setEstadoBrigada] = useState(null);
+  const [conglomeradoId, setConglomeradoId] = useState(null);
+  
+  useEffect(() => {
+    if (brigada_id) {
+      cargarEstadoBrigada();
+    }
+  }, [brigada_id, location.pathname]); // 🆕 Recargar cuando cambie la ruta
+  
+  const cargarEstadoBrigada = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:3003/api/brigadas/${brigada_id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setEstadoBrigada(data.estado);
+      setConglomeradoId(data.conglomerado_id);
+      console.log('🔄 Estado brigada:', data.estado, 'Conglomerado:', data.conglomerado_id);
+    } catch (error) {
+      console.error('Error cargando estado brigada:', error);
+    }
+  };
 
   const getMenuItems = () => {
     const menus = {
@@ -105,7 +124,6 @@ export default function Sidebar() {
             </svg>
           )
         },
-        // 🔧 FIX: Mostrar SOLO si hay brigada_id
         ...(brigada_id ? [
           { 
             path: `/jefe-brigada/mis-misiones?brigada=${brigada_id}`, 
@@ -116,8 +134,14 @@ export default function Sidebar() {
                 <polyline points="12 6 12 12 16 14" />
               </svg>
             ),
-            badge: 'Activa'
-          },
+            badge: estadoBrigada === 'formacion' ? 'Formación' : 
+                   estadoBrigada === 'en_transito' ? 'Tránsito' :
+                   estadoBrigada === 'en_ejecucion' ? 'En Campo' : 
+                   'Activa'
+          }
+        ] : []),
+        // 🆕 Rutas de Acceso (solo si estado es en_transito o posterior)
+        ...(brigada_id && estadoBrigada && ['en_transito', 'en_ejecucion', 'completada'].includes(estadoBrigada) ? [
           { 
             path: `/jefe-brigada/rutas-acceso?brigada=${brigada_id}`, 
             label: 'Rutas Acceso', 
@@ -128,82 +152,70 @@ export default function Sidebar() {
                 <circle cx="7" cy="17" r="2" />
                 <circle cx="17" cy="17" r="2" />
               </svg>
-            )
+            ),
+            badge: estadoBrigada === 'en_transito' ? 'Activo' : undefined
           }
         ] : []),
-        // 🔧 FIX: Mostrar SOLO si hay conglomerado_id
-        ...(conglomerado_id ? [
+        // 🆕 Establecimiento Subparcelas (solo si estado es en_ejecucion o posterior)
+        ...(brigada_id && conglomeradoId && estadoBrigada && ['en_ejecucion', 'completada'].includes(estadoBrigada) ? [
           { 
-            path: `/jefe-brigada/establecimiento-subparcelas?conglomerado=${conglomerado_id}`, 
+            path: `/jefe-brigada/establecimiento-subparcelas?conglomerado=${conglomeradoId}`, 
             label: 'Subparcelas', 
             icon: (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 2L2 7l10 5 10-5-10-5z" />
                 <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
-            )
+            ),
+            badge: estadoBrigada === 'en_ejecucion' ? 'Activo' : undefined
           }
         ] : [])
       ],
       'BOTANICO': [
         { 
-          path: '/jefe-brigada/dashboard', 
-          label: 'Dashboard', 
+          path: '/brigadista/dashboard', 
+          label: 'Mis Brigadas', 
           icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           )
         }
       ],
       'TECNICO_AUX': [
         { 
-          path: '/jefe-brigada/dashboard', 
-          label: 'Dashboard', 
+          path: '/brigadista/dashboard', 
+          label: 'Mis Brigadas', 
           icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           )
-        },
-        ...(conglomerado_id ? [
-          { 
-            path: `/jefe-brigada/establecimiento-subparcelas?conglomerado=${conglomerado_id}`, 
-            label: 'Subparcelas', 
-            icon: (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
-            )
-          }
-        ] : [])
+        }
       ],
       'COINVESTIGADOR': [
         { 
-          path: '/jefe-brigada/dashboard', 
-          label: 'Dashboard', 
+          path: '/brigadista/dashboard', 
+          label: 'Mis Brigadas', 
           icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           )
         }
       ]
     };
 
-    const items = menus[activeRole] || [];
-    console.log('📋 Menu items generados:', items.length, 'para rol:', activeRole);
-    return items;
+    return menus[activeRole] || [];
   };
 
   const menuItems = getMenuItems();
@@ -279,7 +291,6 @@ export default function Sidebar() {
           </Link>
         ))}
         
-        {/* 🔧 FIX: Mensaje mejorado cuando no hay brigada */}
         {activeRole === 'JEFE_BRIGADA' && !brigada_id && sidebarOpen && (
           <div className="sidebar-hint">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

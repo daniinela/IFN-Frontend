@@ -117,38 +117,3 @@ export const geoService = {
     }
   }
 };
-
-// Lista de CARs en Colombia
-export const CARS_COLOMBIA = [
-  { sigla: 'CAM', nombre: 'Corporación Autónoma Regional del Alto Magdalena' },
-  { sigla: 'CAR', nombre: 'Corporación Autónoma Regional de Cundinamarca' },
-  { sigla: 'CARDIQUE', nombre: 'Corporación Autónoma Regional del Canal del Dique' },
-  { sigla: 'CARDER', nombre: 'Corporación Autónoma Regional de Risaralda' },
-  { sigla: 'CARSUCRE', nombre: 'Corporación Autónoma Regional de Sucre' },
-  { sigla: 'CAS', nombre: 'Corporación Autónoma Regional de Santander' },
-  { sigla: 'CODECHOCÓ', nombre: 'Corporación para el Desarrollo Sostenible del Chocó' },
-  { sigla: 'CORALINA', nombre: 'Corporación para el Desarrollo Sostenible del Archipiélago de San Andrés' },
-  { sigla: 'CORPOAMAZONIA', nombre: 'Corporación para el Desarrollo Sostenible del Sur de la Amazonia' },
-  { sigla: 'CORPOBOYACA', nombre: 'Corporación Autónoma Regional de Boyacá' },
-  { sigla: 'CORPOCALDAS', nombre: 'Corporación Autónoma Regional de Caldas' },
-  { sigla: 'CORPOCESAR', nombre: 'Corporación Autónoma Regional del Cesar' },
-  { sigla: 'CORPOCHIVOR', nombre: 'Corporación Autónoma Regional de Chivor' },
-  { sigla: 'CORPOGUAJIRA', nombre: 'Corporación Autónoma Regional de La Guajira' },
-  { sigla: 'CORPOGUAVIO', nombre: 'Corporación Autónoma Regional del Guavio' },
-  { sigla: 'CORPOMAG', nombre: 'Corporación Autónoma Regional del Magdalena' },
-  { sigla: 'CORPONARIÑO', nombre: 'Corporación Autónoma Regional de Nariño' },
-  { sigla: 'CORPONOR', nombre: 'Corporación Autónoma Regional de la Frontera Nororiental' },
-  { sigla: 'CORPOORINO', nombre: 'Corporación Autónoma Regional de la Orinoquía' },
-  { sigla: 'CORPORINOQUIA', nombre: 'Corporación Autónoma Regional de la Orinoquía' },
-  { sigla: 'CORPOURA', nombre: 'Corporación Autónoma Regional de los Valles del Sinú y San Jorge' },
-  { sigla: 'CORPOURABÁ', nombre: 'Corporación para el Desarrollo Sostenible del Urabá' },
-  { sigla: 'CORTOLIMA', nombre: 'Corporación Autónoma Regional del Tolima' },
-  { sigla: 'CRA', nombre: 'Corporación para el Desarrollo Sostenible del Área de Manejo Especial La Macarena' },
-  { sigla: 'CRC', nombre: 'Corporación Autónoma Regional del Cauca' },
-  { sigla: 'CRQ', nombre: 'Corporación Autónoma Regional del Quindío' },
-  { sigla: 'CSB', nombre: 'Corporación Autónoma Regional del Sur de Bolívar' },
-  { sigla: 'CVC', nombre: 'Corporación Autónoma Regional del Valle del Cauca' },
-  { sigla: 'CVS', nombre: 'Corporación Autónoma Regional de los Valles del Sinú y San Jorge' },
-  { sigla: 'CORNARE', nombre: 'Corporación Autónoma Regional de las Cuencas de los Ríos Negro y Nare' },
-  { sigla: 'DADMA', nombre: 'Departamento Administrativo de Gestión del Medio Ambiente' }
-].sort((a, b) => a.sigla.localeCompare(b.sigla));

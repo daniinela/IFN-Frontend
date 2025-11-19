@@ -253,19 +253,6 @@ export default function Dashboard() {
           </button>
           
           <button 
-            onClick={() => window.location.href = '/gestor-recursos/gestion-personal?tab=roles'}
-            className="action-button roles"
-          >
-            <span className="action-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </span>
-            <span className="action-text">Asignar Roles</span>
-          </button>
-          
-          <button 
             onClick={() => window.location.href = '/gestor-recursos/gestion-personal?tab=aprobados'}
             className="action-button personal"
           >

@@ -21,6 +21,9 @@ import MisMisiones from './pages/jefe_brigada/MisMisiones';
 import RutasAcceso from './pages/jefe_brigada/RutasAcceso';
 import EstablecimientoSubparcelas from './pages/jefe_brigada/EstablecimientoSubparcelas';
 
+// BRIGADISTAS
+import DashboardBrigadista from './pages/brigadista/DashboardBrigadista';
+
 function App() {
   return (
     <BrowserRouter>
@@ -57,11 +60,11 @@ function App() {
           <Route path="gestion-personal" element={<GestionPersonal />} />
         </Route>
         
-        {/* JEFE_BRIGADA (y roles operativos) */}
+        {/* JEFE_BRIGADA */}
         <Route 
           path="/jefe-brigada" 
           element={
-            <ProtectedRoute allowedRoles={['JEFE_BRIGADA', 'BOTANICO', 'TECNICO_AUX', 'COINVESTIGADOR']}>
+            <ProtectedRoute allowedRoles={['JEFE_BRIGADA']}>
               <DashboardLayout />
             </ProtectedRoute>
           }
@@ -71,7 +74,19 @@ function App() {
           <Route path="rutas-acceso" element={<RutasAcceso />} />
           <Route path="establecimiento-subparcelas" element={<EstablecimientoSubparcelas />} />
         </Route>
-        
+
+        {/* 🆕 BRIGADISTAS (Botanico, Tecnico Auxiliar, Coinvestigador) */}
+        <Route 
+          path="/brigadista" 
+          element={
+            <ProtectedRoute allowedRoles={['BOTANICO', 'TECNICO_AUX', 'COINVESTIGADOR']}>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="dashboard" element={<DashboardBrigadista />} />
+        </Route>
+
         {/* Redirección por defecto */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />

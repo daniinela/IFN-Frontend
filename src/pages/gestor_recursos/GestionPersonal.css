@@ -789,7 +789,156 @@
   .modal-footer {
     flex-direction: column;
   }
+/* Agregar estos estilos al archivo GestionPersonal.css existente */
 
+/* ============================================
+   ESTILOS PARA MODAL DE APROBACIÓN CON ROLES
+   ============================================ */
+
+.rol-section {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.rol-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.rol-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.btn-delete-mini {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-delete-mini:hover {
+  background: #c82333;
+  transform: scale(1.1);
+}
+
+.btn-add {
+  width: 100%;
+  padding: 12px;
+  background: #fff;
+  border: 2px dashed #28a745;
+  color: #28a745;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 16px;
+}
+
+.btn-add:hover {
+  background: #28a745;
+  color: white;
+  border-style: solid;
+}
+
+/* ============================================
+   ESTILOS PARA HEADER CON BOTÓN
+   ============================================ */
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 20px;
+}
+
+.page-header > div {
+  flex: 1;
+}
+
+.page-header button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   ESTILOS PARA BADGE DE ROL
+   ============================================ */
+
+.badge-rol {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #007bff;
+  color: white;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ============================================
+   ESTILOS PARA REGISTER - INFO ADICIONAL
+   ============================================ */
+
+.section-subtitle {
+  font-size: 14px;
+  color: #6c757d;
+  margin-top: -8px;
+  margin-bottom: 16px;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  transition: all 0.2s;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #28a745;
+  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+  }
+
+  .page-header button {
+    width: 100%;
+  }
+
+  .rol-section {
+    padding: 16px;
+  }
+}
   .modal-footer button {
     width: 100%;
     justify-content: center;

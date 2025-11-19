@@ -15,6 +15,7 @@ function Register() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailVisible, setEmailVisible] = useState(''); // 🆕 Estado para mostrar el email
   
   const [formData, setFormData] = useState({
     email: '',
@@ -22,7 +23,8 @@ function Register() {
     confirmPassword: '',
     nombre_completo: '',
     telefono: '',
-    cedula: ''
+    cedula: '',
+    info_extra_calificaciones: ''
   });
 
   // Estados para ubicación
@@ -33,8 +35,8 @@ function Register() {
   const [departamentoSeleccionado, setDepartamentoSeleccionado] = useState('');
   const [municipioSeleccionado, setMunicipioSeleccionado] = useState('');
 
-  const [titulos, setTitulos] = useState([{ titulo: '', institucion: '', anio: '' }]);
-  const [experiencias, setExperiencias] = useState([{ cargo: '', empresa: '', fecha_inicio: '', fecha_fin: '', descripcion: '' }]);
+  const [titulos, setTitulos] = useState([]);
+  const [experiencias, setExperiencias] = useState([]);
 
   useEffect(() => {
     const manejarInvitacion = async () => {
@@ -53,6 +55,7 @@ function Register() {
           ...prev,
           email: session.user.email
         }));
+        setEmailVisible(session.user.email); // 🆕 Mostrar el email
       } catch (err) {
         console.error('Error:', err);
         setError('Error verificando invitación');
@@ -65,10 +68,13 @@ function Register() {
   useEffect(() => {
     const cargarRegiones = async () => {
       try {
-        const response = await axios.get(`${API_UBICACIONES}/api/ubicaciones/regiones`);
+        // ✅ CORREGIDO: Quité /ubicaciones
+        const response = await axios.get(`${API_UBICACIONES}/api/regiones`);
+        console.log('✅ Regiones cargadas:', response.data);
         setRegiones(response.data || []);
       } catch (error) {
-        console.error('Error cargando regiones:', error);
+        console.error('❌ Error cargando regiones:', error);
+        console.error('URL intentada:', `${API_UBICACIONES}/api/regiones`);
       }
     };
     cargarRegiones();
@@ -83,13 +89,15 @@ function Register() {
 
     const cargarDepartamentos = async () => {
       try {
-        const response = await axios.get(`${API_UBICACIONES}/api/ubicaciones/departamentos/region/${regionSeleccionada}`);
+        // ✅ CORREGIDO: Quité /ubicaciones
+        const response = await axios.get(`${API_UBICACIONES}/api/departamentos/region/${regionSeleccionada}`);
+        console.log('✅ Departamentos cargados:', response.data);
         setDepartamentos(response.data || []);
         setMunicipios([]);
         setDepartamentoSeleccionado('');
         setMunicipioSeleccionado('');
       } catch (error) {
-        console.error('Error cargando departamentos:', error);
+        console.error('❌ Error cargando departamentos:', error);
       }
     };
     cargarDepartamentos();
@@ -103,15 +111,43 @@ function Register() {
 
     const cargarMunicipios = async () => {
       try {
-        const response = await axios.get(`${API_UBICACIONES}/api/ubicaciones/municipios/departamento/${departamentoSeleccionado}`);
+        // ✅ CORREGIDO: Quité /ubicaciones
+        const response = await axios.get(`${API_UBICACIONES}/api/municipios/departamento/${departamentoSeleccionado}`);
+        console.log('✅ Municipios cargados:', response.data);
         setMunicipios(response.data || []);
         setMunicipioSeleccionado('');
       } catch (error) {
-        console.error('Error cargando municipios:', error);
+        console.error('❌ Error cargando municipios:', error);
       }
     };
     cargarMunicipios();
   }, [departamentoSeleccionado]);
+
+  const agregarTitulo = () => setTitulos([...titulos, { titulo: '', institucion: '', anio: '' }]);
+  const actualizarTitulo = (index, campo, valor) => {
+    const nuevos = [...titulos];
+    nuevos[index][campo] = valor;
+    setTitulos(nuevos);
+  };
+  const eliminarTitulo = (index) => {
+    setTitulos(titulos.filter((_, i) => i !== index));
+  };
+
+  const agregarExperiencia = () => setExperiencias([...experiencias, { 
+    cargo: '', 
+    empresa: '', 
+    fecha_inicio: '', 
+    fecha_fin: '', 
+    descripcion: '' 
+  }]);
+  const actualizarExperiencia = (index, campo, valor) => {
+    const nuevas = [...experiencias];
+    nuevas[index][campo] = valor;
+    setExperiencias(nuevas);
+  };
+  const eliminarExperiencia = (index) => {
+    setExperiencias(experiencias.filter((_, i) => i !== index));
+  };
 
   const validarFechas = () => {
     for (let exp of experiencias) {
@@ -121,26 +157,6 @@ function Register() {
       }
     }
     return true;
-  };
-
-  const agregarTitulo = () => setTitulos([...titulos, { titulo: '', institucion: '', anio: '' }]);
-  const actualizarTitulo = (index, campo, valor) => {
-    const nuevos = [...titulos];
-    nuevos[index][campo] = valor;
-    setTitulos(nuevos);
-  };
-  const eliminarTitulo = (index) => {
-    if (titulos.length > 1) setTitulos(titulos.filter((_, i) => i !== index));
-  };
-
-  const agregarExperiencia = () => setExperiencias([...experiencias, { cargo: '', empresa: '', fecha_inicio: '', fecha_fin: '', descripcion: '' }]);
-  const actualizarExperiencia = (index, campo, valor) => {
-    const nuevas = [...experiencias];
-    nuevas[index][campo] = valor;
-    setExperiencias(nuevas);
-  };
-  const eliminarExperiencia = (index) => {
-    if (experiencias.length > 1) setExperiencias(experiencias.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -170,12 +186,12 @@ function Register() {
         throw new Error('Cédula inválida');
       }
 
-      if (titulos.some(t => !t.titulo || !t.institucion || !t.anio)) {
-        throw new Error('Por favor completa todos los títulos');
+      if (titulos.length > 0 && titulos.some(t => !t.titulo || !t.institucion || !t.anio)) {
+        throw new Error('Por favor completa todos los títulos o elimínalos');
       }
 
-      if (experiencias.some(e => !e.cargo || !e.empresa || !e.descripcion)) {
-        throw new Error('Por favor completa toda la experiencia laboral');
+      if (experiencias.length > 0 && experiencias.some(e => !e.cargo || !e.empresa || !e.descripcion)) {
+        throw new Error('Por favor completa toda la experiencia laboral o elimínala');
       }
 
       const titulosCompletos = titulos.filter(t => t.titulo && t.institucion && t.anio);
@@ -203,34 +219,43 @@ function Register() {
       const userId = data.user.id;
       console.log('✅ Contraseña establecida. User ID:', userId);
 
-      console.log('💾 Guardando en tabla usuarios...');
+      console.log('💾 Actualizando datos del usuario en BD...');
       try {
-        await axios.post('http://localhost:3001/api/usuarios', {
-          id: userId,
-          email: formData.email,
+        // 🔥 IMPORTANTE: Usar PUT porque el usuario YA EXISTE desde la invitación
+        const response = await axios.put(`http://localhost:3001/api/usuarios/${userId}`, {
           cedula: formData.cedula,
           nombre_completo: formData.nombre_completo,
-          telefono: formData.telefono || null
-        });
-        console.log('✅ Usuario guardado en BD');
-      } catch (err) {
-        console.error('❌ Error usuarios:', err.response?.data || err.message);
-        throw new Error('Error guardando usuario: ' + (err.response?.data?.error || err.message));
-      }
-
-      console.log('💾 Creando brigadista...');
-      try {
-        await axios.post('http://localhost:3002/api/brigadistas/registro/nuevo', {
-          user_id: userId,
-          municipio_id: municipioSeleccionado,
+          telefono: formData.telefono || null,
+          municipio_residencia: municipioSeleccionado,
           titulos: titulosCompletos,
-          experiencia_laboral: experienciasCompletas
+          experiencia_laboral: experienciasCompletas,
+          info_extra_calificaciones: formData.info_extra_calificaciones || null,
+          estado_aprobacion: 'pendiente' // Queda pendiente para aprobación
         });
-        console.log('✅ Brigadista creado');
+        console.log('✅ Usuario actualizado completamente:', response.data);
       } catch (err) {
-        console.error('❌ Error brigadista:', err.response?.data || err.message);
-        await axios.delete(`http://localhost:3001/api/usuarios/${userId}`).catch(console.error);
-        throw new Error('Error creando brigadista: ' + (err.response?.data?.error || err.message));
+        console.error('❌ Error actualizando usuario:', err.response?.data || err.message);
+        
+        // Si el error es 404 (no existe), entonces intentar crear
+        if (err.response?.status === 404) {
+          console.log('⚠️ Usuario no existe, creando nuevo registro...');
+          await axios.post('http://localhost:3001/api/usuarios', {
+            id: userId,
+            email: formData.email,
+            cedula: formData.cedula,
+            nombre_completo: formData.nombre_completo,
+            telefono: formData.telefono || null,
+            municipio_residencia: municipioSeleccionado,
+            titulos: titulosCompletos,
+            experiencia_laboral: experienciasCompletas,
+            info_extra_calificaciones: formData.info_extra_calificaciones || null,
+            estado_aprobacion: 'pendiente',
+            activo: false
+          });
+          console.log('✅ Usuario creado exitosamente');
+        } else {
+          throw new Error('Error guardando datos: ' + (err.response?.data?.error || err.message));
+        }
       }
 
       console.log('✉️ Confirmando email...');
@@ -304,12 +329,17 @@ function Register() {
                 <h3 className="section-title">Datos Personales</h3>
                 <div className="form-grid-2">
                   <div className="form-group">
-                    <label>Email</label>
+                    <label>Email (desde invitación)</label>
                     <input 
                       type="email" 
                       className="form-input form-input-readonly" 
-                      value={formData.email}
+                      value={emailVisible} // 🆕 Ahora muestra el email
                       readOnly
+                      style={{
+                        backgroundColor: '#f3f4f6',
+                        cursor: 'not-allowed',
+                        color: '#6b7280'
+                      }}
                     />
                   </div>
                   <div className="form-group">
@@ -438,23 +468,34 @@ function Register() {
                     </select>
                   </div>
                 </div>
+
+                <div className="form-group">
+                  <label>Información Adicional de Calificaciones</label>
+                  <textarea
+                    className="form-textarea"
+                    placeholder="Describe cualquier calificación adicional, certificaciones, habilidades especiales, etc. (Opcional)"
+                    value={formData.info_extra_calificaciones}
+                    onChange={(e) => setFormData({ ...formData, info_extra_calificaciones: e.target.value })}
+                    rows="4"
+                  />
+                </div>
               </div>
 
               <div className="form-section">
-                <h3 className="section-title">Títulos Académicos</h3>
+                <h3 className="section-title">Títulos Académicos (Opcional)</h3>
+                <p className="section-subtitle">Puedes agregar títulos académicos si los tienes</p>
+                
                 {titulos.map((titulo, index) => (
                   <div key={index} className="subsection-card">
                     <div className="subsection-header">
                       <span>Título {index + 1}</span>
-                      {titulos.length > 1 && (
-                        <button 
-                          type="button" 
-                          className="btn-delete-mini"
-                          onClick={() => eliminarTitulo(index)}
-                        >
-                          ✕
-                        </button>
-                      )}
+                      <button 
+                        type="button" 
+                        className="btn-delete-mini"
+                        onClick={() => eliminarTitulo(index)}
+                      >
+                        ✕
+                      </button>
                     </div>
                     <div className="form-grid-3">
                       <input 
@@ -463,7 +504,6 @@ function Register() {
                         placeholder="Título obtenido"
                         value={titulo.titulo}
                         onChange={(e) => actualizarTitulo(index, 'titulo', e.target.value)}
-                        required
                       />
                       <input 
                         type="text" 
@@ -471,7 +511,6 @@ function Register() {
                         placeholder="Institución"
                         value={titulo.institucion}
                         onChange={(e) => actualizarTitulo(index, 'institucion', e.target.value)}
-                        required
                       />
                       <input 
                         type="number" 
@@ -481,31 +520,31 @@ function Register() {
                         max={new Date().getFullYear()}
                         value={titulo.anio}
                         onChange={(e) => actualizarTitulo(index, 'anio', e.target.value)}
-                        required
                       />
                     </div>
                   </div>
                 ))}
+                
                 <button type="button" className="btn-add" onClick={agregarTitulo}>
                   + Agregar Título
                 </button>
               </div>
 
               <div className="form-section">
-                <h3 className="section-title">Experiencia Laboral</h3>
+                <h3 className="section-title">Experiencia Laboral (Opcional)</h3>
+                <p className="section-subtitle">Puedes agregar experiencia laboral si la tienes</p>
+                
                 {experiencias.map((exp, index) => (
                   <div key={index} className="subsection-card">
                     <div className="subsection-header">
                       <span>Experiencia {index + 1}</span>
-                      {experiencias.length > 1 && (
-                        <button 
-                          type="button" 
-                          className="btn-delete-mini"
-                          onClick={() => eliminarExperiencia(index)}
-                        >
-                          ✕
-                        </button>
-                      )}
+                      <button 
+                        type="button" 
+                        className="btn-delete-mini"
+                        onClick={() => eliminarExperiencia(index)}
+                      >
+                        ✕
+                      </button>
                     </div>
                     <div className="form-grid-2">
                       <input 
@@ -514,7 +553,6 @@ function Register() {
                         placeholder="Cargo"
                         value={exp.cargo}
                         onChange={(e) => actualizarExperiencia(index, 'cargo', e.target.value)}
-                        required
                       />
                       <input 
                         type="text" 
@@ -522,7 +560,6 @@ function Register() {
                         placeholder="Empresa"
                         value={exp.empresa}
                         onChange={(e) => actualizarExperiencia(index, 'empresa', e.target.value)}
-                        required
                       />
                     </div>
                     <div className="form-grid-2">
@@ -533,7 +570,6 @@ function Register() {
                           className="form-input"
                           value={exp.fecha_inicio}
                           onChange={(e) => actualizarExperiencia(index, 'fecha_inicio', e.target.value)}
-                          required
                         />
                       </div>
                       <div className="form-group">
@@ -551,11 +587,11 @@ function Register() {
                       placeholder="Describe tus funciones y logros principales..."
                       value={exp.descripcion}
                       onChange={(e) => actualizarExperiencia(index, 'descripcion', e.target.value)}
-                      required
                       rows="3"
                     />
                   </div>
                 ))}
+                
                 <button type="button" className="btn-add" onClick={agregarExperiencia}>
                   + Agregar Experiencia
                 </button>

@@ -22,19 +22,25 @@ export default function GestionPersonal() {
   
   // Geografía
   const [regiones, setRegiones] = useState([]);
-  const [departamentos, setDepartamentos] = useState([]);
-  const [municipios, setMunicipios] = useState([]);
   
   // Modales
   const [showModalDetalle, setShowModalDetalle] = useState(false);
+  const [showModalInvitar, setShowModalInvitar] = useState(false);
   const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
-  const [showModalAsignarRol, setShowModalAsignarRol] = useState(false);
-  const [formRol, setFormRol] = useState({
+  
+  // 🆕 Modal de aprobación con roles
+  const [showModalAprobar, setShowModalAprobar] = useState(false);
+  const [rolesAsignados, setRolesAsignados] = useState([{
     tipo_rol_id: '',
     region_id: '',
     departamento_id: '',
-    municipio_id: ''
-  });
+    municipio_id: '',
+    departamentos: [],
+    municipios: []
+  }]);
+
+  // Invitación
+  const [emailInvitacion, setEmailInvitacion] = useState('');
 
   useEffect(() => {
     cargarDatos();
@@ -50,12 +56,11 @@ export default function GestionPersonal() {
       const pendientesRes = await usuariosService.getPendientes();
       setUsuariosPendientes(pendientesRes.data);
       
-      // Cargar aprobados
-      const todosRes = await usuariosService.getAll();
-      const aprobados = todosRes.data.filter(u => u.estado_aprobacion === 'aprobado');
-      setUsuariosAprobados(aprobados);
+      // 🆕 Cargar solo personal operacional
+      const aprobadosRes = await usuariosService.getPersonalOperacional();
+      setUsuariosAprobados(aprobadosRes.data.data || []);
       
-      // Roles del sistema (hardcoded por ahora, o crear endpoint)
+      // 🆕 Roles operacionales únicamente
       setRolesDisponibles([
         { id: '1', codigo: 'JEFE_BRIGADA', nombre: 'Jefe de Brigada', nivel: 'operacional' },
         { id: '2', codigo: 'BOTANICO', nombre: 'Botánico', nivel: 'operacional' },
@@ -79,20 +84,24 @@ export default function GestionPersonal() {
     }
   };
 
-  const cargarDepartamentos = async (region_id) => {
+  const cargarDepartamentos = async (region_id, rolIndex) => {
     try {
       const deptosRes = await geoService.getDepartamentos(region_id);
-      setDepartamentos(deptosRes.data);
-      setMunicipios([]);
+      const nuevosRoles = [...rolesAsignados];
+      nuevosRoles[rolIndex].departamentos = deptosRes.data;
+      nuevosRoles[rolIndex].municipios = [];
+      setRolesAsignados(nuevosRoles);
     } catch (err) {
       console.error('Error cargando departamentos:', err);
     }
   };
 
-  const cargarMunicipios = async (departamento_id) => {
+  const cargarMunicipios = async (departamento_id, rolIndex) => {
     try {
       const munRes = await geoService.getMunicipios(departamento_id);
-      setMunicipios(munRes.data);
+      const nuevosRoles = [...rolesAsignados];
+      nuevosRoles[rolIndex].municipios = munRes.data;
+      setRolesAsignados(nuevosRoles);
     } catch (err) {
       console.error('Error cargando municipios:', err);
     }
@@ -103,14 +112,91 @@ export default function GestionPersonal() {
     setShowModalDetalle(true);
   };
 
-  const aprobarUsuario = async (id) => {
+  // 🆕 Abrir modal de aprobación con roles
+  const abrirModalAprobar = (usuario) => {
+    setUsuarioSeleccionado(usuario);
+    setRolesAsignados([{
+      tipo_rol_id: '',
+      region_id: '',
+      departamento_id: '',
+      municipio_id: '',
+      departamentos: [],
+      municipios: []
+    }]);
+    setShowModalAprobar(true);
+  };
+
+  // 🆕 Agregar nuevo rol
+  const agregarRol = () => {
+    setRolesAsignados([...rolesAsignados, {
+      tipo_rol_id: '',
+      region_id: '',
+      departamento_id: '',
+      municipio_id: '',
+      departamentos: [],
+      municipios: []
+    }]);
+  };
+
+  // 🆕 Eliminar rol
+  const eliminarRol = (index) => {
+    if (rolesAsignados.length > 1) {
+      setRolesAsignados(rolesAsignados.filter((_, i) => i !== index));
+    }
+  };
+
+  // 🆕 Actualizar campo de rol
+  const actualizarRol = (index, campo, valor) => {
+    const nuevosRoles = [...rolesAsignados];
+    nuevosRoles[index][campo] = valor;
+    
+    // Si cambia región, resetear departamento y municipio
+    if (campo === 'region_id') {
+      nuevosRoles[index].departamento_id = '';
+      nuevosRoles[index].municipio_id = '';
+      nuevosRoles[index].municipios = [];
+      if (valor) cargarDepartamentos(valor, index);
+    }
+    
+    // Si cambia departamento, resetear municipio
+    if (campo === 'departamento_id') {
+      nuevosRoles[index].municipio_id = '';
+      if (valor) cargarMunicipios(valor, index);
+    }
+    
+    setRolesAsignados(nuevosRoles);
+  };
+
+  // 🆕 Aprobar usuario con roles
+  const aprobarUsuario = async () => {
     try {
+      // Validar que todos los roles tengan tipo_rol_id
+      if (rolesAsignados.some(r => !r.tipo_rol_id)) {
+        setError('Todos los roles deben tener un tipo seleccionado');
+        return;
+      }
+
+      // Validar que todos tengan al menos una ubicación
+      if (rolesAsignados.some(r => !r.region_id && !r.departamento_id && !r.municipio_id)) {
+        setError('Todos los roles deben tener al menos una ubicación geográfica');
+        return;
+      }
+
       setLoading(true);
       setError('');
       
-      await usuariosService.aprobar(id);
+      // Preparar roles para el backend
+      const rolesParaEnviar = rolesAsignados.map(r => ({
+        tipo_rol_id: r.tipo_rol_id,
+        region_id: r.region_id || null,
+        departamento_id: r.departamento_id || null,
+        municipio_id: r.municipio_id || null
+      }));
+
+      await usuariosService.aprobarConRoles(usuarioSeleccionado.id, rolesParaEnviar);
       
-      setSuccess('Usuario aprobado exitosamente');
+      setSuccess(`Usuario aprobado con ${rolesParaEnviar.length} rol(es)`);
+      setShowModalAprobar(false);
       setShowModalDetalle(false);
       cargarDatos();
     } catch (err) {
@@ -145,43 +231,31 @@ export default function GestionPersonal() {
     }
   };
 
-  const abrirAsignarRol = (usuario) => {
-    setUsuarioSeleccionado(usuario);
-    setFormRol({
-      tipo_rol_id: '',
-      region_id: '',
-      departamento_id: '',
-      municipio_id: ''
-    });
-    setShowModalAsignarRol(true);
-  };
-
-  const asignarRol = async () => {
-    if (!formRol.tipo_rol_id) {
-      setError('Debes seleccionar un rol');
-      return;
-    }
-
+  // 🆕 Invitar usuario
+  const invitarUsuario = async () => {
     try {
+      if (!emailInvitacion) {
+        setError('Debes ingresar un email');
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailInvitacion)) {
+        setError('Email inválido');
+        return;
+      }
+
       setLoading(true);
       setError('');
-      
-      await usuariosService.asignarRol(
-        usuarioSeleccionado.id,
-        formRol.tipo_rol_id,
-        {
-          region_id: formRol.region_id || null,
-          departamento_id: formRol.departamento_id || null,
-          municipio_id: formRol.municipio_id || null
-        }
-      );
-      
-      setSuccess('Rol asignado exitosamente');
-      setShowModalAsignarRol(false);
-      cargarDatos();
+
+      await usuariosService.inviteUser(emailInvitacion);
+
+      setSuccess(`Invitación enviada a ${emailInvitacion}`);
+      setEmailInvitacion('');
+      setShowModalInvitar(false);
     } catch (err) {
-      console.error('Error asignando rol:', err);
-      setError(err.response?.data?.error || 'Error al asignar rol');
+      console.error('Error invitando usuario:', err);
+      setError(err.response?.data?.error || 'Error al enviar invitación');
     } finally {
       setLoading(false);
     }
@@ -192,8 +266,21 @@ export default function GestionPersonal() {
       <div className="page-header">
         <div>
           <h1>Gestión de Personal</h1>
-          <p>Revisión de candidaturas y asignación de roles operacionales</p>
+          <p>Revisión de candidaturas y gestión de personal operacional</p>
         </div>
+        {/* 🆕 Botón Invitar Usuario */}
+        <button 
+          onClick={() => setShowModalInvitar(true)}
+          className="btn-primary"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="8.5" cy="7" r="4" />
+            <line x1="20" y1="8" x2="20" y2="14" />
+            <line x1="23" y1="11" x2="17" y2="11" />
+          </svg>
+          Invitar Usuario
+        </button>
       </div>
 
       {error && <ErrorAlert mensaje={error} onClose={() => setError('')} />}
@@ -208,7 +295,7 @@ export default function GestionPersonal() {
         </div>
       )}
 
-      {/* Tabs */}
+      {/* Tabs - Solo 2 tabs */}
       <div className="tabs">
         <button
           className={`tab ${tabActual === 'pendientes' ? 'active' : ''}`}
@@ -221,12 +308,6 @@ export default function GestionPersonal() {
           onClick={() => setSearchParams({ tab: 'aprobados' })}
         >
           Personal Aprobado ({usuariosAprobados.length})
-        </button>
-        <button
-          className={`tab ${tabActual === 'roles' ? 'active' : ''}`}
-          onClick={() => setSearchParams({ tab: 'roles' })}
-        >
-          Asignación de Roles
         </button>
       </div>
 
@@ -282,7 +363,7 @@ export default function GestionPersonal() {
               ))}
             </div>
           )
-        ) : tabActual === 'aprobados' ? (
+        ) : (
           // TAB 2: APROBADOS
           usuariosAprobados.length === 0 ? (
             <div className="empty-state">
@@ -290,7 +371,7 @@ export default function GestionPersonal() {
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
               </svg>
-              <h3>No hay usuarios aprobados</h3>
+              <h3>No hay personal aprobado</h3>
               <p>Aún no se han aprobado candidaturas</p>
             </div>
           ) : (
@@ -301,29 +382,26 @@ export default function GestionPersonal() {
                     <th>Nombre</th>
                     <th>Email</th>
                     <th>Cédula</th>
+                    <th>Rol(es)</th>
                     <th>Fecha Aprobación</th>
-                    <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {usuariosAprobados.map(usuario => (
                     <tr key={usuario.id}>
-                      <td>{usuario.nombre_completo}</td>
-                      <td>{usuario.email}</td>
-                      <td>{usuario.cedula}</td>
+                      <td>{usuario.usuarios?.nombre_completo}</td>
+                      <td>{usuario.usuarios?.email}</td>
+                      <td>{usuario.usuarios?.cedula}</td>
                       <td>
-                        {usuario.fecha_aprobacion ? 
-                          new Date(usuario.fecha_aprobacion).toLocaleDateString() : 
-                          '-'
-                        }
+                        <span className="badge-rol">
+                          {usuario.roles_sistema?.nombre}
+                        </span>
                       </td>
                       <td>
-                        <button 
-                          onClick={() => abrirAsignarRol(usuario)}
-                          className="btn-primary"
-                        >
-                          Asignar Rol
-                        </button>
+                        {usuario.usuarios?.fecha_aprobacion ? 
+                          new Date(usuario.usuarios.fecha_aprobacion).toLocaleDateString() : 
+                          '-'
+                        }
                       </td>
                     </tr>
                   ))}
@@ -331,19 +409,6 @@ export default function GestionPersonal() {
               </table>
             </div>
           )
-        ) : (
-          // TAB 3: ROLES
-          <div className="roles-section">
-            <div className="alert alert-info">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
-              Selecciona un usuario aprobado para asignarle roles operacionales
-            </div>
-            <p>Usa la pestaña "Personal Aprobado" para asignar roles</p>
-          </div>
         )}
       </div>
 
@@ -411,19 +476,30 @@ export default function GestionPersonal() {
                   <p>No registró experiencia</p>
                 )}
               </div>
+
+              {/* Info Extra */}
+              {usuarioSeleccionado.info_extra_calificaciones && (
+                <div className="section">
+                  <h4>Información Adicional</h4>
+                  <p>{usuarioSeleccionado.info_extra_calificaciones}</p>
+                </div>
+              )}
             </div>
 
             <div className="modal-footer">
               {usuarioSeleccionado.estado_aprobacion === 'pendiente' && (
                 <>
                   <button 
-                    onClick={() => aprobarUsuario(usuarioSeleccionado.id)}
+                    onClick={() => {
+                      setShowModalDetalle(false);
+                      abrirModalAprobar(usuarioSeleccionado);
+                    }}
                     className="btn-success"
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
-                    Aprobar
+                    Aprobar y Asignar Roles
                   </button>
                   <button 
                     onClick={() => rechazarUsuario(usuarioSeleccionado.id)}
@@ -445,108 +521,167 @@ export default function GestionPersonal() {
         </div>
       )}
 
-      {/* Modal Asignar Rol */}
-      {showModalAsignarRol && usuarioSeleccionado && (
-        <div className="modal-overlay" onClick={() => setShowModalAsignarRol(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+      {/* 🆕 Modal Aprobar con Roles */}
+      {showModalAprobar && usuarioSeleccionado && (
+        <div className="modal-overlay" onClick={() => setShowModalAprobar(false)}>
+          <div className="modal-content modal-large" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Asignar Rol: {usuarioSeleccionado.nombre_completo}</h3>
-              <button onClick={() => setShowModalAsignarRol(false)} className="modal-close">✕</button>
+              <h3>Aprobar: {usuarioSeleccionado.nombre_completo}</h3>
+              <button onClick={() => setShowModalAprobar(false)} className="modal-close">✕</button>
             </div>
             
             <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">Rol *</label>
-                <select
-                  value={formRol.tipo_rol_id}
-                  onChange={(e) => setFormRol({ ...formRol, tipo_rol_id: e.target.value })}
-                  className="form-select"
-                >
-                  <option value="">-- Selecciona un rol --</option>
-                  {rolesDisponibles.map(rol => (
-                    <option key={rol.id} value={rol.id}>
-                      {rol.nombre} ({rol.nivel})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Región (Opcional)</label>
-                <select
-                  value={formRol.region_id}
-                  onChange={(e) => {
-                    setFormRol({ ...formRol, region_id: e.target.value, departamento_id: '', municipio_id: '' });
-                    if (e.target.value) cargarDepartamentos(e.target.value);
-                  }}
-                  className="form-select"
-                >
-                  <option value="">-- Todas las regiones --</option>
-                  {regiones.map(region => (
-                    <option key={region.id} value={region.id}>
-                      {region.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Departamento (Opcional)</label>
-                <select
-                  value={formRol.departamento_id}
-                  onChange={(e) => {
-                    setFormRol({ ...formRol, departamento_id: e.target.value, municipio_id: '' });
-                    if (e.target.value) cargarMunicipios(e.target.value);
-                  }}
-                  disabled={!formRol.region_id}
-                  className="form-select"
-                >
-                  <option value="">-- Todos los departamentos --</option>
-                  {departamentos.map(depto => (
-                    <option key={depto.id} value={depto.id}>
-                      {depto.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Municipio (Opcional)</label>
-                <select
-                  value={formRol.municipio_id}
-                  onChange={(e) => setFormRol({ ...formRol, municipio_id: e.target.value })}
-                  disabled={!formRol.departamento_id}
-                  className="form-select"
-                >
-                  <option value="">-- Todos los municipios --</option>
-                  {municipios.map(mun => (
-                    <option key={mun.id} value={mun.id}>
-                      {mun.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="alert alert-info">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="16" x2="12" y2="12" />
                   <line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
-                El alcance geográfico define dónde puede operar este usuario
+                Debes asignar al menos un rol con su ubicación geográfica
+              </div>
+
+              {rolesAsignados.map((rol, index) => (
+                <div key={index} className="rol-section">
+                  <div className="rol-header">
+                    <h4>Rol {index + 1}</h4>
+                    {rolesAsignados.length > 1 && (
+                      <button 
+                        type="button"
+                        onClick={() => eliminarRol(index)}
+                        className="btn-delete-mini"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Tipo de Rol *</label>
+                    <select
+                      value={rol.tipo_rol_id}
+                      onChange={(e) => actualizarRol(index, 'tipo_rol_id', e.target.value)}
+                      className="form-select"
+                    >
+                      <option value="">-- Selecciona un rol --</option>
+                      {rolesDisponibles.map(r => (
+                        <option key={r.id} value={r.id}>
+                          {r.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Región *</label>
+                    <select
+                      value={rol.region_id}
+                      onChange={(e) => actualizarRol(index, 'region_id', e.target.value)}
+                      className="form-select"
+                    >
+                      <option value="">-- Selecciona región --</option>
+                      {regiones.map(region => (
+                        <option key={region.id} value={region.id}>
+                          {region.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Departamento</label>
+                    <select
+                      value={rol.departamento_id}
+                      onChange={(e) => actualizarRol(index, 'departamento_id', e.target.value)}
+                      disabled={!rol.region_id}
+                      className="form-select"
+                    >
+                      <option value="">-- Todos los departamentos --</option>
+                      {rol.departamentos?.map(depto => (
+                        <option key={depto.id} value={depto.id}>
+                          {depto.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Municipio</label>
+                    <select
+                      value={rol.municipio_id}
+                      onChange={(e) => actualizarRol(index, 'municipio_id', e.target.value)}
+                      disabled={!rol.departamento_id}
+                      className="form-select"
+                    >
+                      <option value="">-- Todos los municipios --</option>
+                      {rol.municipios?.map(mun => (
+                        <option key={mun.id} value={mun.id}>
+                          {mun.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              ))}
+
+              <button 
+                type="button"
+                onClick={agregarRol}
+                className="btn-add"
+              >
+                + Agregar Otro Rol
+              </button>
+            </div>
+
+            <div className="modal-footer">
+              <button onClick={() => setShowModalAprobar(false)} className="btn-cancel">
+                Cancelar
+              </button>
+              <button 
+                onClick={aprobarUsuario}
+                disabled={loading}
+                className="btn-primary"
+              >
+                {loading ? 'Aprobando...' : 'Aprobar Usuario'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🆕 Modal Invitar Usuario */}
+      {showModalInvitar && (
+        <div className="modal-overlay" onClick={() => setShowModalInvitar(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Invitar Nuevo Usuario</h3>
+              <button onClick={() => setShowModalInvitar(false)} className="modal-close">✕</button>
+            </div>
+            
+            <div className="modal-body">
+              <p>El usuario recibirá un email con un enlace para completar su registro.</p>
+              
+              <div className="form-group">
+                <label className="form-label">Email *</label>
+                <input
+                  type="email"
+                  value={emailInvitacion}
+                  onChange={(e) => setEmailInvitacion(e.target.value)}
+                  placeholder="usuario@ejemplo.com"
+                  className="form-input"
+                />
               </div>
             </div>
 
             <div className="modal-footer">
-              <button onClick={() => setShowModalAsignarRol(false)} className="btn-cancel">
+              <button onClick={() => setShowModalInvitar(false)} className="btn-cancel">
                 Cancelar
               </button>
               <button 
-                onClick={asignarRol}
-                disabled={loading || !formRol.tipo_rol_id}
+                onClick={invitarUsuario}
+                disabled={loading || !emailInvitacion}
                 className="btn-primary"
               >
-                {loading ? 'Asignando...' : 'Asignar Rol'}
+                {loading ? 'Enviando...' : 'Enviar Invitación'}
               </button>
             </div>
           </div>
